@@ -6,6 +6,8 @@
   const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const ic = (n, cls = "") => `<span class="ms ${cls}" aria-hidden="true">${n}</span>`;
   const brl = (v) => "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const num2 = (v) => Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const dataBr = (ts) => new Date(ts).toLocaleDateString("pt-BR");
 
   // custo de mana "{2}{U}{U}" → bolinhas coloridas
   function mana(custo) {
@@ -41,6 +43,8 @@
   }
   document.addEventListener("click", (e) => { if (e.target.closest("[data-sv=fechar-folha]") || e.target.id === "veu") fecharFolha(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharFolha(); });
+  // ícone de edição que não carregar some, em vez de aparecer quebrado
+  document.addEventListener("error", (e) => { const t = e.target; if (t && t.classList && t.classList.contains("seticon")) t.style.visibility = "hidden"; }, true);
 
   async function copiar(txt) {
     try { await navigator.clipboard.writeText(txt); toast("Copiado", "content_copy"); }
@@ -49,5 +53,5 @@
   const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
   const nomeRaridade = { common: "Comum", uncommon: "Incomum", rare: "Rara", mythic: "Mítica", special: "Especial", bonus: "Bônus" };
 
-  Object.assign(SV, { $, $$, esc, ic, brl, mana, toast, folha, fecharFolha, confirmar, copiar, debounce, nomeRaridade });
+  Object.assign(SV, { $, $$, esc, ic, brl, num2, dataBr, mana, toast, folha, fecharFolha, confirmar, copiar, debounce, nomeRaridade });
 })();

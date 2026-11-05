@@ -23,7 +23,7 @@
 
   const d = {
     TIPOS, CORES_CAPA, ehCaixa, porPagina, capacidade, paginaDo, uid, LS,
-    config: () => Object.assign({ nome: "Planeswalker", cotacao: 5.4, idioma: "pt", albumPadrao: "" }, LS.get("config", {})),
+    config: () => Object.assign({ nome: "Planeswalker", cotacao: 5.4, idioma: "pt", albumPadrao: "", usarLiga: true }, LS.get("config", {})),
     salvarConfig: (c) => LS.set("config", Object.assign(d.config(), c)),
 
     albuns: () => LS.get("albuns", []),
@@ -51,19 +51,38 @@
       return 0;
     },
     copias: (nome) => d.cartas().filter((c) => c.nome === nome),
-    valor(c, cfg = d.config()) { return (c.foil && c.usdFoil ? c.usdFoil : c.usd || c.usdFoil || 0) * cfg.cotacao; },
+    // ---------- cotação da LigaMagic: só o que o próprio jogador digitou (a Liga não tem acesso automático) ----------
+    liga: () => LS.get("liga", {}),
+    chaveLiga: (c, foil = !!c.foil) => `${c.set}:${c.num}:${foil ? "f" : "n"}`,
+    cotacaoLiga: (c, foil = !!c.foil) => d.liga()[d.chaveLiga(c, foil)] || null,
+    salvarLiga(c, foil, q) { const m = d.liga(); m[d.chaveLiga(c, foil)] = { menor: q.menor || 0, medio: q.medio || 0, maior: q.maior || 0, em: Date.now(), nome: c.nome }; LS.set("liga", m); },
+    removerLiga(c, foil) { const m = d.liga(); delete m[d.chaveLiga(c, foil)]; LS.set("liga", m); },
+    // valor em R$: a cotação da Liga informada pelo jogador, quando existe; senão o preço do Scryfall convertido
+    valorInfo(c, cfg = d.config()) {
+      const q = cfg.usarLiga !== false ? d.cotacaoLiga(c, !!c.foil) : null;
+      const vl = q && (q.medio || q.menor || q.maior);
+      if (vl) return { v: vl, fonte: "liga", em: q.em };
+      const usd = c.foil && c.usdFoil ? c.usdFoil : c.usd || c.usdFoil || 0;
+      return { v: usd * cfg.cotacao, fonte: usd ? "scryfall" : "", em: 0 };
+    },
+    valor: (c, cfg) => d.valorInfo(c, cfg).v,
+
+    // ---------- lista de desejos ----------
+    desejos: () => LS.get("desejos", []),
+    salvarDesejos: (l) => LS.set("desejos", l),
 
     decks: () => LS.get("decks", []),
     salvarDecks: (l) => LS.set("decks", l),
 
-    exportar: () => JSON.stringify({ app: "SpellVault", versao: 1, em: new Date().toISOString(), config: d.config(), albuns: d.albuns(), cartas: d.cartas(), decks: d.decks(), jogo: LS.get("jogo", null) }, null, 1),
+    exportar: () => JSON.stringify({ app: "SpellVault", versao: 1, em: new Date().toISOString(), config: d.config(), albuns: d.albuns(), cartas: d.cartas(), decks: d.decks(), jogo: LS.get("jogo", null), liga: d.liga(), desejos: d.desejos() }, null, 1),
     importar(txt) {
       const j = JSON.parse(txt);
       if (j.app !== "SpellVault" || !Array.isArray(j.cartas)) throw new Error("Este arquivo não é um backup do SpellVault.");
       LS.set("config", j.config || {}); LS.set("albuns", j.albuns || []); LS.set("cartas", j.cartas); LS.set("decks", j.decks || []);
       if (j.jogo) LS.set("jogo", j.jogo);
+      LS.set("liga", j.liga || {}); LS.set("desejos", j.desejos || []);
     },
-    apagarTudo() { ["config", "albuns", "cartas", "decks", "jogo", "semeado"].forEach(LS.del); },
+    apagarTudo() { ["config", "albuns", "cartas", "decks", "jogo", "semeado", "liga", "desejos"].forEach(LS.del); },
   };
 
   // coleção de exemplo no primeiro uso: álbuns montados e cartas buscadas no Scryfall

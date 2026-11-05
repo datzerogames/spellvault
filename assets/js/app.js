@@ -1,4 +1,4 @@
-// SpellVault — rotas (#vida, #scanner, #colecao, #albuns, #grimorio, #carta-id, #album-id), barra de vidro e brasas.
+// SpellVault — rotas (#vida, #scanner, #consulta, #colecao, #albuns, #grimorio, #carta-id, #ver-id, #album-id), barra de vidro e brasas.
 (function () {
   const SV = window.SV;
   const { $, ic, esc } = SV;
@@ -6,6 +6,7 @@
   const ABAS = [
     ["vida", "favorite", "Vida"],
     ["scanner", "center_focus_strong", "Scanner"],
+    ["consulta", "travel_explore", "Consulta"],
     ["colecao", "style", "Coleção"],
     ["albuns", "collections_bookmark", "Álbuns"],
     ["grimorio", "menu_book", "Grimório"],
@@ -15,6 +16,7 @@
   function rota() {
     const h = location.hash.replace(/^#/, "") || "vida";
     if (h.startsWith("carta-")) return { tela: "carta", arg: h.slice(6), aba: "colecao" };
+    if (h.startsWith("ver-")) return { tela: "ver", arg: h.slice(4), aba: "consulta" };
     if (h.startsWith("album-")) return { tela: "album", arg: h.slice(6), aba: "albuns" };
     const ok = ABAS.some((a) => a[0] === h);
     return { tela: ok ? h : "vida", aba: ok ? h : "vida" };
@@ -31,7 +33,7 @@
     document.body.dataset.tela = r.tela;
     SV.telas[r.tela].montar(app, r.arg);
     window.scrollTo(0, 0);
-    const nomes = { vida: "Vida", scanner: "Scanner", colecao: "Coleção", albuns: "Álbuns", grimorio: "Grimório", carta: "Carta", album: "Álbum" };
+    const nomes = { vida: "Vida", scanner: "Scanner", consulta: "Consulta", colecao: "Coleção", albuns: "Álbuns", grimorio: "Grimório", carta: "Carta", ver: "Ficha da carta", album: "Álbum" };
     document.title = `${nomes[r.tela]} · SpellVault`;
   }
   window.addEventListener("hashchange", render);

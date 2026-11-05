@@ -17,7 +17,7 @@
     return `<a class="carta-mini" href="#carta-${c.id}" ${extra}>
       <div class="img">${c.img ? `<img src="${esc(c.img)}" alt="${esc(c.nome)}" loading="lazy"/>` : ic("style")}</div>
       ${c.foil ? `<span class="selo-foil">Foil</span><span class="foil-brilho"></span>` : ""}
-      <div class="rodape"><b>${esc(nomeExibido(c))}</b><small><span class="raridade ${esc(c.raridade)}">${esc(SV.nomeRaridade[c.raridade] || "")}</span><span class="v">${SV.d.valor(c) ? brl(SV.d.valor(c)) : "—"}</span></small></div>
+      <div class="rodape"><b>${esc(nomeExibido(c))}</b><small><span class="raridade ${esc(c.raridade)}">${esc(SV.nomeRaridade[c.raridade] || "")}</span><span class="v">${SV.d.valorInfo(c).v ? brl(SV.d.valorInfo(c).v) : "—"}${SV.d.valorInfo(c).fonte === "liga" ? ' <i class="liga-tag">Liga</i>' : ""}</span></small></div>
     </a>`;
   }
 
@@ -46,28 +46,44 @@
     $("#cont-col", el).textContent = `${l.length} de ${todas.length}`;
   }
   SV.telas = SV.telas || {};
+  let modoCol = "cofre";
+  const contaDesejos = () => SV.d.desejos().reduce((s, x) => s + x.qtd, 0);
+  function corpoCofre(el) {
+    const todas = SV.d.cartas(), cfg = SV.d.config();
+    const total = todas.reduce((s, c) => s + SV.d.valor(c, cfg), 0);
+    $("#corpo-col", el).innerHTML = `
+      <div class="resumo"><div class="tomo"><b class="num">${todas.length}</b><span>cartas</span></div><div class="tomo"><b class="num">${brl(total).replace("R$ ", "")}</b><span>R$ estimado</span></div><div class="tomo"><b class="num">${todas.filter((c) => c.foil).length}</b><span>foils</span></div></div>
+      <label class="busca">${ic("search")}<input id="q-col" value="${esc(filtro.q)}" placeholder="Buscar no cofre (nome, edição, tipo)" autocomplete="off"/></label>
+      <div class="chips mt" id="chips-cor"><button class="chip ${!filtro.cor ? "on" : ""}" data-cor="">Todas</button>${CORES.map(([k, n]) => `<button class="chip ${filtro.cor === k ? "on" : ""}" data-cor="${k}"><span class="pip ${k === "M" ? "X" : k}" style="width:14px;height:14px"></span>${n}</button>`).join("")}</div>
+      <div class="chips" id="chips-tipo"><button class="chip ${filtro.foil ? "on" : ""}" data-foil="1">${ic("auto_awesome")}Foil</button>${TIPOS_CARTA.map(([k, n]) => `<button class="chip ${filtro.tipo === k ? "on" : ""}" data-tipo="${k}">${n}</button>`).join("")}</div>
+      <div class="fila mt"><span class="rot">${ic("style")}<span id="cont-col"></span></span><span class="espaco"></span>
+        <label class="chip" style="cursor:pointer">${ic("sort")}<select id="ordem-col" style="background:none;border:0;color:inherit;font:inherit;outline:0">${[["recentes", "Recentes"], ["valor", "Mais valiosas"], ["nome", "Nome"], ["cmc", "Custo de mana"]].map(([v, t]) => `<option value="${v}" ${filtro.ordem === v ? "selected" : ""} style="background:#17110d">${t}</option>`).join("")}</select></label></div>
+      <div id="lista-col" class="mt"></div>`;
+    desenharLista(el);
+    $("#q-col", el).addEventListener("input", SV.debounce((e) => { filtro.q = e.target.value.trim(); desenharLista(el); }, 160));
+    $("#ordem-col", el).addEventListener("change", (e) => { filtro.ordem = e.target.value; desenharLista(el); });
+  }
   SV.telas.colecao = {
     montar(el) {
-      const todas = SV.d.cartas(), cfg = SV.d.config();
-      const total = todas.reduce((s, c) => s + SV.d.valor(c, cfg), 0);
       el.innerHTML = `<div class="pagina">
         <header class="topo"><span class="selo">${ic("style")}</span><div class="marca"><b>SpellVault</b><small>Coleção · tesouro do cofre</small></div>
           <div class="acoes"><a class="ico-bt" href="#scanner" aria-label="Escanear carta">${ic("center_focus_strong")}</a></div></header>
-        <div class="resumo"><div class="tomo"><b class="num">${todas.length}</b><span>cartas</span></div><div class="tomo"><b class="num">${brl(total).replace("R$ ", "")}</b><span>R$ estimado</span></div><div class="tomo"><b class="num">${todas.filter((c) => c.foil).length}</b><span>foils</span></div></div>
-        <label class="busca">${ic("search")}<input id="q-col" value="${esc(filtro.q)}" placeholder="Buscar no cofre (nome, edição, tipo)" autocomplete="off"/></label>
-        <div class="chips mt" id="chips-cor"><button class="chip ${!filtro.cor ? "on" : ""}" data-cor="">Todas</button>${CORES.map(([k, n]) => `<button class="chip ${filtro.cor === k ? "on" : ""}" data-cor="${k}"><span class="pip ${k === "M" ? "X" : k}" style="width:14px;height:14px"></span>${n}</button>`).join("")}</div>
-        <div class="chips" id="chips-tipo"><button class="chip ${filtro.foil ? "on" : ""}" data-foil="1">${ic("auto_awesome")}Foil</button>${TIPOS_CARTA.map(([k, n]) => `<button class="chip ${filtro.tipo === k ? "on" : ""}" data-tipo="${k}">${n}</button>`).join("")}</div>
-        <div class="fila mt"><span class="rot">${ic("style")}<span id="cont-col"></span></span><span class="espaco"></span>
-          <label class="chip" style="cursor:pointer">${ic("sort")}<select id="ordem-col" style="background:none;border:0;color:inherit;font:inherit;outline:0">${[["recentes", "Recentes"], ["valor", "Mais valiosas"], ["nome", "Nome"], ["cmc", "Custo de mana"]].map(([v, t]) => `<option value="${v}" ${filtro.ordem === v ? "selected" : ""} style="background:#17110d">${t}</option>`).join("")}</select></label></div>
-        <div id="lista-col" class="mt"></div>
+        <div class="seg" id="seg-modo"><button data-modo="cofre">${ic("style")}Cofre (${SV.d.cartas().length})</button><button data-modo="desejos">${ic("favorite")}Desejos (${contaDesejos()})</button></div>
+        <div id="corpo-col" class="mt"></div>
       </div>
       <button class="fab" data-c="adicionar" aria-label="Adicionar carta">${ic("add")}</button>`;
-      desenharLista(el);
-      $("#q-col", el).addEventListener("input", SV.debounce((e) => { filtro.q = e.target.value.trim(); desenharLista(el); }, 160));
-      $("#ordem-col", el).addEventListener("change", (e) => { filtro.ordem = e.target.value; desenharLista(el); });
+      const mostrar = () => {
+        if (modoCol === "cofre") corpoCofre(el);
+        else SV.desejos.montar($("#corpo-col", el), () => { const d = $('#seg-modo [data-modo="desejos"]', el); if (d) d.innerHTML = `${ic("favorite")}Desejos (${contaDesejos()})`; });
+        $$("#seg-modo button", el).forEach((x) => x.classList.toggle("on", x.dataset.modo === modoCol));
+        $(".fab", el).hidden = modoCol !== "cofre";
+      };
+      mostrar();
       el.onclick = (e) => {
         const b = e.target.closest("button"); if (!b) return;
-        if (b.dataset.cor !== undefined) { filtro.cor = b.dataset.cor; $$("#chips-cor .chip", el).forEach((x) => x.classList.toggle("on", x === b)); desenharLista(el); }
+        if (b.dataset.modo) { modoCol = b.dataset.modo; mostrar(); }
+        else if (modoCol !== "cofre") return;
+        else if (b.dataset.cor !== undefined) { filtro.cor = b.dataset.cor; $$("#chips-cor .chip", el).forEach((x) => x.classList.toggle("on", x === b)); desenharLista(el); }
         else if (b.dataset.tipo) { filtro.tipo = filtro.tipo === b.dataset.tipo ? "" : b.dataset.tipo; $$("#chips-tipo [data-tipo]", el).forEach((x) => x.classList.toggle("on", x.dataset.tipo === filtro.tipo)); desenharLista(el); }
         else if (b.dataset.foil) { filtro.foil = !filtro.foil; b.classList.toggle("on", filtro.foil); desenharLista(el); }
         else if (b.dataset.c === "adicionar") abrirAdicionar({ aoAdicionar: () => SV.telas.colecao.montar(el) });
@@ -85,73 +101,6 @@
     return pt;
   }
 
-  // ---------- detalhe da carta ----------
-  SV.telas.carta = {
-    montar(el, id) {
-      const c = SV.d.carta(id);
-      if (!c) { el.innerHTML = `<div class="pagina"><div class="vazio">${ic("help")}Esta carta não está mais no cofre.<br/><a class="bt mt" href="#colecao">Voltar à coleção</a></div></div>`; return; }
-      const a = SV.d.album(c.album), cfg = SV.d.config(), copias = SV.d.copias(c.nome), k = copias.findIndex((x) => x.id === c.id) + 1;
-      const deck = SV.d.decks().find((x) => x.id === c.deck);
-      const idiomaPt = cfg.idioma === "pt";
-      el.innerHTML = `<div class="pagina">
-        <header class="topo"><button class="ico-bt" data-c="voltar" aria-label="Voltar">${ic("arrow_back")}</button><div class="marca"><b style="font-size:19px">Grimório</b><small>Onde está guardada</small></div>
-          <div class="acoes"><button class="ico-bt" data-c="compartilhar" aria-label="Copiar nome">${ic("share")}</button></div></header>
-        <div class="detalhe">
-          <div class="coluna-carta">
-            <div class="palco3d"><div class="carta3d" id="c3d">
-              <div class="face frente">${c.img ? `<img src="${esc(c.img)}" alt="${esc(c.nome)}"/>` : `<div class="verso-proprio"><b>${esc(c.nome)}</b></div>`}<div class="reflexo"></div>${c.foil ? `<div class="holo"></div>` : ""}</div>
-              <div class="face tras">${c.verso ? `<img src="${esc(c.verso)}" alt="Verso de ${esc(c.nome)}"/>` : `<div class="verso-proprio"><span class="sigilo">${ic("auto_stories")}</span><b>SpellVault</b><span class="muted" style="font-size:14px">Cofre de ${esc(cfg.nome)}</span></div>`}<div class="reflexo"></div></div>
-            </div></div>
-            <div class="ctrl-3d"><button class="bt peq" data-c="virar">${ic("flip")}Virar</button>${c.foil ? `<span class="etiqueta ouro" style="align-self:center">${ic("auto_awesome")} Foil holográfico</span>` : ""}</div>
-            <p class="dim" style="text-align:center;font-size:13.5px;margin-top:6px">Arraste a carta para inclinar · arte de ${esc(c.artista || "—")}</p>
-          </div>
-          <div style="display:grid;gap:14px;min-width:0">
-            <div class="nome-carta"><div class="fila"><span class="raridade ${esc(c.raridade)}">${esc(SV.nomeRaridade[c.raridade] || c.raridade)}</span>${c.foil ? `<span class="etiqueta ouro">Foil</span>` : ""}<span class="espaco"></span>${mana(c.custo)}</div>
-              <h1 id="nome-c">${esc(idiomaPt && c.pt ? c.pt.nome : c.nome)}</h1><p class="en" id="nome-en">${idiomaPt && c.pt ? esc(c.nome) : ""}</p></div>
-            <div class="etiquetas"><span class="etiqueta">${esc(c.set.toUpperCase())} #${esc(c.num)}</span><span class="etiqueta">${esc((CONDICOES.find((x) => x[0] === c.condicao) || ["", c.condicao])[1])} (${esc(c.condicao)})</span><span class="etiqueta">${esc(c.idioma)}</span>${deck ? `<span class="etiqueta ouro">${ic("swords")} ${esc(deck.nome)}</span>` : ""}</div>
-            <div class="tomo pad preco"><div><span class="rot">Valor médio estimado</span><b class="num">${SV.d.valor(c, cfg) ? brl(SV.d.valor(c, cfg)) : "Sem preço"}</b></div><small class="dim" style="text-align:right">${SV.d.valor(c, cfg) ? `US$ ${(c.foil && c.usdFoil ? c.usdFoil : c.usd || c.usdFoil).toFixed(2)} no Scryfall<br/>cotação ${cfg.cotacao.toFixed(2)}` : "O Scryfall ainda não<br/>tem preço desta edição"}</small></div>
-            <div class="texto-regras" id="regras"><div class="tipo"><span id="tipo-c">${esc(idiomaPt && c.pt && c.pt.tipo ? c.pt.tipo : c.tipo)}</span>${c.forca ? `<span class="num">${esc(c.forca)}/${esc(c.resist)}</span>` : c.lealdade ? `<span class="num">${ic("shield")}${esc(c.lealdade)}</span>` : ""}</div><div id="texto-c">${esc(idiomaPt && c.pt && c.pt.texto ? c.pt.texto : c.texto)}</div></div>
-            <div class="seg" style="max-width:220px"><button data-c="lang" data-l="pt" class="${idiomaPt ? "on" : ""}">PT-BR</button><button data-c="lang" data-l="en" class="${idiomaPt ? "" : "on"}">EN</button></div>
-            <section class="tomo cantos onde">
-              <div class="fila"><h3>${ic("pin_drop")}Onde está guardada?</h3><span class="espaco"></span><span class="etiqueta ouro">Cópia ${k}/${copias.length}</span></div>
-              ${a ? `<p class="rot mt">${ic(SV.d.TIPOS[a.tipo].icone)}${esc(a.nome)}</p><p class="muted">${esc(a.nota || "")}</p>
-                <p class="local">${SV.d.ehCaixa(a) ? `Posição <em>${c.slot}</em>` : `Página ${SV.d.paginaDo(a, c.slot)} · <em>Slot ${c.slot}</em>`}</p><p class="dim">${esc(posicaoTexto(a, c.slot))}</p>
-                ${SV.d.ehCaixa(a) ? "" : mapaPagina(a, c.slot)}
-                <p class="dim" style="font-size:14px">${esc(a.sleeve ? "Proteção: " + a.sleeve : "")}</p>` : `<p class="muted mt">Esta cópia ainda não tem lugar. Guarde-a num álbum para achá-la depois.</p>`}
-            </section>
-            <section class="tomo pad"><p class="rot">${ic("stacks")}Todas as cópias (${copias.length})</p>
-              <ul class="copias">${copias.map((x) => { const ax = SV.d.album(x.album); return `<li>${ic(x.deck ? "swords" : ax ? SV.d.TIPOS[ax.tipo].icone : "inventory")}<a href="#carta-${x.id}" style="flex:1;min-width:0"><b>${esc(ax ? ax.nome + " (slot " + x.slot + ")" : "Sem lugar definido")}</b><small>${esc(x.setNome)} · ${esc(x.condicao)} · ${x.foil ? "Foil" : "Normal"} · ${esc(x.idioma)}</small></a>${x.id === c.id ? `<span class="aqui">Aqui</span>` : ""}</li>`; }).join("")}</ul></section>
-            <div class="acoes-carta">
-              <button class="bt ouro cheio" data-c="mover">${ic("swap_horiz")}Mudar de slot / álbum</button>
-              <div class="dupla"><button class="bt" data-c="deck">${ic("swords")}Designar a deck</button><button class="bt" data-c="editar">${ic("edit")}Estado e foil</button></div>
-              <div class="dupla"><a class="bt fantasma" href="${esc(c.uri)}" target="_blank" rel="noopener">${ic("open_in_new")}Ver no Scryfall</a><button class="bt sangue" data-c="remover">${ic("delete_forever")}Desvincular</button></div>
-            </div>
-          </div>
-        </div></div>`;
-      carta3d($("#c3d", el), c.foil);
-      if (idiomaPt && !c.pt && !c.ptBuscado) traducao(c).then((pt) => { if (pt && location.hash === "#carta-" + id) aplicarIdioma(el, c, "pt", pt); });
-      el.onclick = async (e) => {
-        const b = e.target.closest("[data-c]"); if (!b) return;
-        const acao = b.dataset.c;
-        if (acao === "voltar") history.length > 1 ? history.back() : (location.hash = "#colecao");
-        else if (acao === "virar") { const x = $("#c3d", el); x.dataset.virada = x.dataset.virada === "1" ? "0" : "1"; x.style.transform = `rotateY(${x.dataset.virada === "1" ? 180 : 0}deg)`; }
-        else if (acao === "lang") { $$("[data-c=lang]", el).forEach((x) => x.classList.toggle("on", x === b)); const pt = b.dataset.l === "pt" ? await traducao(SV.d.carta(id)) : null; aplicarIdioma(el, c, b.dataset.l, pt); if (b.dataset.l === "pt" && !pt) toast("Esta carta não tem impressão em português.", "translate"); }
-        else if (acao === "compartilhar") SV.copiar(`${c.nome} — ${c.setNome} (${c.set.toUpperCase()} #${c.num})`);
-        else if (acao === "mover") folhaMover(c, () => SV.telas.carta.montar(el, id));
-        else if (acao === "deck") folhaDeck(c, () => SV.telas.carta.montar(el, id));
-        else if (acao === "editar") folhaEditar(c, () => SV.telas.carta.montar(el, id));
-        else if (acao === "remover") { if (await confirmar("Desvincular esta cópia?", `${c.nome} sai do cofre${a ? " e o slot " + c.slot + " de " + a.nome + " fica livre" : ""}.`, "Desvincular")) { SV.d.remover(c.id); toast("Cópia desvinculada", "delete"); location.hash = "#colecao"; } }
-      };
-    },
-    desmontar(el) { el.onclick = null; },
-  };
-  function aplicarIdioma(el, c, l, pt) {
-    const usaPt = l === "pt" && pt;
-    $("#nome-c", el).textContent = usaPt ? pt.nome : c.nome;
-    $("#nome-en", el).textContent = usaPt ? c.nome : "";
-    $("#tipo-c", el).textContent = usaPt && pt.tipo ? pt.tipo : c.tipo;
-    $("#texto-c", el).textContent = usaPt && pt.texto ? pt.texto : c.texto;
-  }
   function mapaPagina(a, slot, clique) {
     const t = SV.d.TIPOS[a.tipo], pp = SV.d.porPagina(a), pag = SV.d.paginaDo(a, slot), oc = SV.d.ocupacao(a.id);
     const ini = (pag - 1) * pp + 1;
@@ -291,5 +240,5 @@
     });
   }
 
-  Object.assign(SV, { cartaMini, posicaoTexto, abrirAdicionar, folhaDestino, folhaMover, mapaPagina, nomeExibido });
+  Object.assign(SV, { cartaMini, posicaoTexto, abrirAdicionar, folhaDestino, folhaMover, folhaDeck, folhaEditar, mapaPagina, nomeExibido, carta3d, traducao, CONDICOES, corDe });
 })();

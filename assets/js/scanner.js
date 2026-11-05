@@ -73,7 +73,7 @@
           <div class="fila"><span class="raridade ${esc(c.raridade)}">${esc(SV.nomeRaridade[c.raridade] || "")}</span>${conf ? `<span class="etiqueta">${Math.round(conf)}% de leitura</span>` : ""}<span class="espaco"></span>${mana(c.custo)}</div>
           <h3 id="nome-r">${esc(c.pt ? c.pt.nome : c.nome)}</h3><p class="dim" id="en-r" style="font-style:italic">${c.pt ? esc(c.nome) : ""}</p>
           <p style="font-size:15px;margin-top:6px">${esc(c.tipo)}</p>
-          <p class="ouro" style="font:700 22px var(--ft);margin-top:6px">${brl((c.usd || c.usdFoil) * cfg.cotacao)}</p>
+          <p class="ouro" style="font:700 22px var(--ft);margin-top:6px">${SV.d.valorInfo(c).v ? brl(SV.d.valorInfo(c).v) : "Sem preço"}${SV.d.valorInfo(c).fonte === "liga" ? ' <i class="liga-tag">Liga</i>' : ""}</p>
           <p class="dim" style="font-size:13.5px">${esc(c.setNome)} · ${esc(c.set.toUpperCase())} #${esc(c.num)}</p>
         </div>
       </section>
@@ -84,7 +84,8 @@
         ${c.foilPossivel ? `<label class="check mt"><input type="checkbox" id="foil-s" ${foil ? "checked" : ""}/>Esta cópia é foil</label>` : ""}
       </section>
       <button class="bt ouro cheio mt quebra" data-s="add">${ic("bookmark_add")}<span>Adicionar à coleção${a ? `<small>${esc(a.nome)} · slot ${SV.d.proximoLivre(a.id) || "—"}</small>` : ""}</span></button>
-      <div class="dupla mt"><button class="bt" data-s="mais">${ic("tune")}Mais opções</button><a class="bt fantasma" href="${esc(c.uri)}" target="_blank" rel="noopener">${ic("open_in_new")}Ver no Scryfall</a></div>`;
+      <div class="dupla mt"><a class="bt" href="#ver-${esc(c.sf)}">${ic("menu_book")}Ficha completa</a><a class="bt" href="${esc(SV.liga.urlCarta(c.nome))}" target="_blank" rel="noopener">${ic("storefront")}Ver na Liga</a></div>
+      <div class="dupla mt"><button class="bt" data-s="mais">${ic("tune")}Mais opções</button><a class="bt fantasma" href="${esc(c.uri)}" target="_blank" rel="noopener">${ic("open_in_new")}Scryfall</a></div>`;
     if (!c.pt && cfg.idioma === "pt") {
       const pt = await SV.sf.emPortugues(c.set, c.num) || (await SV.sf.buscar(`!"${c.nome}" lang:pt`, "&include_multilingual=true").catch(() => []))[0]?.pt;
       if (pt && atual === c) { c.pt = pt; $("#nome-r", el).textContent = pt.nome; $("#en-r", el).textContent = c.nome; if (pt.texto) $("#texto-r", el).textContent = pt.texto; desenharLote(el); }

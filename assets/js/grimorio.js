@@ -33,7 +33,11 @@
           <div class="campo"><label for="cot">Cotação do dólar (R$)</label><input id="cot" type="number" step="0.01" min="1" value="${cfg.cotacao}"/><small>Os preços vêm do Scryfall em dólar e são convertidos com este valor.</small></div>
           <div class="campo"><label>Nomes das cartas</label><div class="seg"><button data-g="idioma" data-v="pt" class="${cfg.idioma === "pt" ? "on" : ""}">Português</button><button data-g="idioma" data-v="en" class="${cfg.idioma === "en" ? "on" : ""}">Inglês</button></div></div>
           <div class="campo"><label for="alb-pad">Álbum padrão do scanner</label><select id="alb-pad"><option value="">Nenhum (só coleção)</option>${albuns.map((a) => `<option value="${a.id}" ${a.id === cfg.albumPadrao ? "selected" : ""}>${esc(a.nome)}</option>`).join("")}</select></div>
+          <label class="check"><input type="checkbox" id="usar-liga" ${cfg.usarLiga !== false ? "checked" : ""}/>Usar a cotação da LigaMagic que eu informei no valor estimado</label>
+          <p class="dim" style="font-size:14px;margin-top:-6px">Hoje: ${Object.keys(SV.d.liga()).length} cotação(ões) guardada(s). A Liga não libera os preços para outros apps, então elas são digitadas por você na ficha de cada carta.</p>
           <button class="bt" data-g="precos">${ic("currency_exchange")}Atualizar preços no Scryfall</button>
+          <button class="bt" data-g="lista-cofre">${ic("content_copy")}Copiar a lista do cofre (texto)</button>
+          ${Object.keys(SV.d.liga()).length ? `<button class="bt sangue" data-g="limpar-liga">${ic("delete")}Apagar as cotações da Liga</button>` : ""}
         </section>
 
         <h2 class="rubrica"><span>Cópia de segurança</span></h2>
@@ -41,9 +45,10 @@
           <div class="dupla mt"><button class="bt" data-g="exportar">${ic("download")}Exportar</button><label class="bt" style="cursor:pointer">${ic("upload")}Importar<input type="file" accept="application/json,.json" id="imp" hidden/></label></div>
           <button class="bt sangue cheio mt" data-g="apagar">${ic("delete_forever")}Apagar tudo deste aparelho</button></section>
 
-        <p class="creditos">Dados, preços e imagens das cartas: <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>. Leitura do nome: Tesseract.js, no próprio aparelho.<br/>SpellVault é um projeto de fã e não é afiliado à Wizards of the Coast. Magic: The Gathering é marca da Wizards of the Coast LLC.</p>
+        <p class="creditos">Dados, preços e imagens das cartas: <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a>. Os atalhos para a <a href="https://www.ligamagic.com.br" target="_blank" rel="noopener">LigaMagic</a> só abrem o site dela; o SpellVault não tem relação com a Liga. Leitura do nome: Tesseract.js, no próprio aparelho.<br/>SpellVault é um projeto de fã e não é afiliado à Wizards of the Coast. Magic: The Gathering é marca da Wizards of the Coast LLC.</p>
       </div>`;
       $("#cot", el).addEventListener("change", (e) => { const v = +e.target.value; if (v > 0) { SV.d.salvarConfig({ cotacao: v }); toast("Cotação atualizada", "currency_exchange"); } });
+      $("#usar-liga", el).addEventListener("change", (e) => { SV.d.salvarConfig({ usarLiga: e.target.checked }); toast(e.target.checked ? "Valor estimado usa a cotação da Liga" : "Valor estimado usa só o Scryfall", "storefront"); });
       $("#alb-pad", el).addEventListener("change", (e) => { SV.d.salvarConfig({ albumPadrao: e.target.value }); toast("Álbum padrão salvo", "collections_bookmark"); });
       $("#f-deck", el).addEventListener("submit", (e) => { e.preventDefault(); const n = $("#novo-deck", el).value.trim(); if (!n) return; SV.d.salvarDecks(SV.d.decks().concat({ id: SV.d.uid(), nome: n, comandante: "" })); toast("Deck criado", "swords"); SV.telas.grimorio.montar(el); });
       $("#imp", el).addEventListener("change", async (e) => {
@@ -58,6 +63,13 @@
         if (g === "nome") { SV.folha(`<h2>Seu nome de planeswalker</h2><form class="form mt" id="f-nome"><div class="campo"><input id="nome-in" value="${esc(SV.d.config().nome)}" maxlength="30" autofocus/></div><button class="bt ouro cheio">Salvar</button></form>`); $("#f-nome").addEventListener("submit", (ev) => { ev.preventDefault(); SV.d.salvarConfig({ nome: $("#nome-in").value.trim() || "Planeswalker" }); SV.fecharFolha(); SV.telas.grimorio.montar(el); }); }
         else if (g === "idioma") { SV.d.salvarConfig({ idioma: b.dataset.v }); SV.telas.grimorio.montar(el); }
         else if (g === "del-deck") { if (await confirmar("Apagar este deck?", "As cartas continuam na coleção, só perdem a marcação de deck.", "Apagar")) { SV.d.salvarDecks(SV.d.decks().filter((d) => d.id !== b.dataset.id)); SV.d.salvarCartas(SV.d.cartas().map((c) => (c.deck === b.dataset.id ? Object.assign(c, { deck: "" }) : c))); SV.telas.grimorio.montar(el); } }
+        else if (g === "lista-cofre") {
+          const por = {}; SV.d.cartas().forEach((c) => (por[c.nome] = (por[c.nome] || 0) + 1));
+          const l = Object.entries(por).sort((a, b) => a[0].localeCompare(b[0])).map(([nome, qtd]) => ({ nome, qtd }));
+          if (!l.length) return toast("O cofre está vazio.", "info");
+          await SV.copiar(SV.liga.textoLista(l)); toast(`${l.length} cartas diferentes copiadas`, "content_copy");
+        }
+        else if (g === "limpar-liga") { if (await confirmar("Apagar as cotações da Liga?", "As cotações que você digitou são apagadas e o valor volta a usar o Scryfall.", "Apagar")) { SV.d.LS.del("liga"); toast("Cotações apagadas", "delete"); SV.telas.grimorio.montar(el); } }
         else if (g === "exportar") { const blob = new Blob([SV.d.exportar()], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `spellvault-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast("Cópia de segurança baixada", "download"); }
         else if (g === "apagar") { if (await confirmar("Apagar tudo?", "Coleção, álbuns, decks e partida deste aparelho serão apagados. Exporte uma cópia antes se quiser guardar.", "Apagar tudo")) { SV.d.apagarTudo(); toast("Cofre esvaziado", "delete"); location.hash = "#vida"; location.reload(); } }
         else if (g === "precos") {

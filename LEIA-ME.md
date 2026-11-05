@@ -1,46 +1,59 @@
 # SpellVault — companheiro de Magic com visual medieval
 
-O SpellVault é o app das telas do Stitch (`stitch_magic_binder_companion`), agora funcionando. O visual é medieval dark fantasy: couro, ouro velho, brasas e uma barra de navegação de vidro fumê.
+O SpellVault é o app das telas do Stitch (`stitch_magic_binder_companion`), funcionando. O visual é medieval dark fantasy: couro, ouro velho, brasas e uma barra de navegação de vidro fumê.
 
-## Como abrir
-
-- **No computador:** dê dois cliques em `index.html`. Precisa de internet, porque as cartas, os preços e as imagens vêm do Scryfall.
-- **No celular, com câmera:** a câmera só abre em endereço seguro (https ou localhost). Para usar o scanner no celular, publique o app (GitHub Pages, por exemplo). Sem isso, o botão **Enviar foto** já funciona: tire a foto da carta e ela é lida do mesmo jeito.
+**Abrir:** https://datzerogames.github.io/spellvault/ (ou `index.html` no computador). Precisa de internet, porque cartas, imagens e preços vêm do Scryfall. A câmera do scanner só abre em endereço https; sem ela, use "Enviar foto".
 
 ## Abas (barra de vidro no rodapé)
 
 | Aba | O que faz |
 |---|---|
-| **Vida** | Marcador de vida para Commander, de 2 a 6 jogadores, com 20, 25, 30 ou 40 de vida. Veja os detalhes abaixo. |
-| **Scanner** | Lê o nome da carta pela câmera ou por foto e identifica no Scryfall, em português ou inglês. Mostra o preço e quantas cópias você já tem, e deixa escolher o álbum de destino. As cartas lidas formam um lote da sessão. Também dá para digitar o nome. |
-| **Coleção** | Cartas com busca e filtros (cor, tipo, foil e ordenação) e valor total estimado em R$. Cada carta abre o seu detalhe, descrito abaixo. |
-| **Álbuns** | Estante de álbuns 2x2, pastas 3x3 e 4x3, deck boxes e gaveteiros. Mostra as páginas com os slots, a ocupação de cada álbum e o botão "Escanear p/ slot #N". Tocar num slot vazio adiciona uma carta exatamente ali. |
-| **Grimório** | Perfil com os números do cofre, cartas por cor, as mais valiosas e os decks. Nos ajustes: cotação do dólar, idioma dos nomes e álbum padrão. Também exporta e importa a cópia de segurança e atualiza os preços. |
+| **Vida** | Marcador de Commander para 2 a 6 jogadores: dano de comandante, veneno, taxa, energia, monarca, dados, cronômetro e crônica. |
+| **Scanner** | Lê o nome da carta pela câmera ou por foto e identifica em português ou inglês. Mostra o preço, mostra quantas cópias você já tem, deixa guardar no álbum e leva para a ficha completa. |
+| **Consulta** | A busca de cartas, no estilo da LigaMagic. Veja abaixo. |
+| **Coleção** | Seu cofre (busca, filtros, valor em R$) e a lista de desejos. |
+| **Álbuns** | Fichários, pastas, deck boxes e gaveteiros, com páginas e slots. |
+| **Grimório** | Perfil, números do cofre, decks, ajustes e cópia de segurança. |
 
-### Aba Vida
+## Consulta de cartas
 
-- **Mudar a vida:** toque na metade de cima ou de baixo do painel, ou use os botões −5, −1, +1 e +5.
-- **Marcadores:** veneno, taxa de comandante, energia, experiência e dano de comandante recebido de cada oponente.
-- **Quem é eliminado:** a partida marca sozinha quem chegou a 0 de vida, a 10 de veneno ou a 21 de dano de um mesmo comandante.
-- **Outros recursos:** monarca, dados (D4 a D20, moeda e quem começa), cronômetro e a crônica da partida.
-- **Fundo do painel:** a arte do comandante, buscada no Scryfall.
-- **Tela:** fica acesa enquanto a aba Vida está aberta.
+- **Busca por nome em português ou inglês** ("Anel Solar" acha o Sol Ring), com sugestões enquanto você digita.
+- **Filtros:** cores (contém, exatamente ou identidade de comandante), tipo, custo de mana, raridade, edição (por nome ou código), legal no formato, texto de regras, preço máximo em R$, foil, Reserved List, uma carta por edição e ordenação (nome, preço, custo, lançamento, popularidade no EDHREC, raridade, cor).
+- **Atalhos:** mais jogadas no Commander, mais caras, Reserved List, lançamentos, comandantes e terrenos.
+- Quem sabe a sintaxe do Scryfall pode escrever direto, por exemplo `t:legendary c:dimir cmc<=3`.
+- Cada resultado mostra preço em R$ e avisa "No cofre ×N" quando você já tem a carta. "Mostrar mais" carrega as páginas seguintes.
 
-### Detalhe da carta
+## Ficha completa da carta
 
-- Carta em 3D: inclina com o dedo, tem brilho holográfico nas foils e vira (nas cartas de duas faces, mostra o verso).
-- Texto em português ou inglês.
-- **Onde está guardada?** Mostra álbum, página, slot e a posição na página, com o desenho da página e o slot aceso.
-- Lista de todas as cópias.
-- Botões para mover de slot ou de álbum (se o slot estiver ocupado, as duas cartas trocam de lugar), designar a um deck, mudar o estado e o foil, e desvincular.
+Abre pela Consulta, pela Coleção, pelo Scanner ou pelo toque numa edição.
 
-## Onde ficam os dados
+- Imagem em 3D que inclina com o dedo, com brilho holográfico nas foils e verso nas cartas de duas faces.
+- **Idiomas:** um botão por idioma publicado (EN, PT, ES, FR, DE, IT, JA…), que troca nome, texto e imagem.
+- Texto de regras, custo de mana, força/resistência, lealdade, texto de ambientação e palavras-chave.
+- **Preços:** Scryfall em dólar, convertido em R$ (normal, foil e etched), euros e MTG Online.
+- **Cotação da LigaMagic:** veja o item "LigaMagic" abaixo.
+- **Onde está guardada:** álbum, página, slot e posição (só para cartas do cofre), com todas as cópias.
+- **Legalidade** em 20 formatos, aviso de Reserved List e as **decisões oficiais (rulings)**, publicadas só em inglês.
+- **Todas as edições** da carta, com o ícone e o preço de cada uma, e as cartas relacionadas e tokens.
+- **Detalhes técnicos** (lançamento, artista, layout, moldura, acabamentos, ranking EDHREC) e ligações para Scryfall, Gatherer, EDHREC e LigaMagic.
 
-Tudo fica salvo no aparelho (localStorage): coleção, álbuns, decks e partida. No Grimório, use **Exportar** para guardar uma cópia e **Importar** para restaurar. Na primeira vez, o app monta uma coleção de exemplo com 3 álbuns e 20 cartas.
+## LigaMagic: o que o app faz e o que não faz
+
+A LigaMagic **não tem API aberta**, o `robots.txt` dela pede no máximo um acesso a cada 6 minutos e os termos de uso proíbem reproduzir o conteúdo sem autorização expressa. Por isso o SpellVault **não puxa preços da Liga automaticamente**. O que ele faz:
+
+- **Atalhos:** botões que abrem a carta, a busca, a Compra por Lista, as Edições, Cards em alta, Cards em queda e a Reserved List direto no site da Liga.
+- **Cotação informada por você:** na ficha da carta, toque em "Informar cotação", copie da Liga o menor, o médio e o maior valor e guarde (normal e foil separados, com a data). Essa cotação passa a valer no valor da carta, no total da coleção e na lista de desejos, com a etiqueta "Liga". Fica só no seu aparelho. Nos ajustes dá para desligar o uso dela ou apagar todas.
+- **Lista de desejos:** monte a lista de compras e use "Copiar lista" para colar na Compra por Lista da Liga. A mesma cópia existe para o cofre inteiro, no Grimório.
+
+Se a LigaMagic autorizar o uso (parceria ou API), dá para ligar a cotação automática.
+
+## Dados
+
+Tudo fica salvo no aparelho (localStorage): coleção, álbuns, decks, cotações, desejos e partida. No Grimório, use **Exportar** e **Importar** para fazer cópia de segurança. Na primeira abertura, o app monta uma coleção de exemplo com 3 álbuns e 20 cartas.
 
 ## Créditos
 
 - Dados, preços e imagens das cartas: [Scryfall](https://scryfall.com).
-- Leitura do nome: Tesseract.js, que roda no próprio aparelho.
-- Os preços são do Scryfall, em dólar, convertidos pela cotação definida no Grimório. É uma estimativa, não o preço da LigaMagic.
-- Projeto de fã, sem afiliação com a Wizards of the Coast. Magic: The Gathering é marca da Wizards of the Coast LLC.
+- Leitura do nome na câmera: Tesseract.js, rodando no próprio aparelho.
+- Os preços do Scryfall são em dólar, convertidos pela cotação definida no Grimório. São uma estimativa, não o preço de uma loja.
+- Projeto de fã, sem afiliação com a Wizards of the Coast nem com a LigaMagic. Magic: The Gathering é marca da Wizards of the Coast LLC.
