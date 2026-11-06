@@ -4,6 +4,10 @@ O SpellVault é o app das telas do Stitch (`stitch_magic_binder_companion`), fun
 
 **Abrir:** https://datzerogames.github.io/spellvault/ (ou `index.html` no computador). Precisa de internet, porque cartas, imagens e preços vêm do Scryfall. A câmera do scanner só abre em endereço https; sem ela, use "Enviar foto".
 
+**Instalar no celular (Android):** https://datzerogames.github.io/spellvault/baixar.html — o QR code do app aponta para esse endereço e para `releases/latest/download/SpellVault.apk`, que não mudam quando sai uma versão nova.
+
+**Versão demo:** `?demo=1` no endereço do app (https://datzerogames.github.io/spellvault/?demo=1) ou o app **SpellVault DEMO** (`SpellVault-DEMO.apk`). Abre com dois álbuns 4x4 de **Goblinóides** já montados e o fichário em 3D. Os dados da demo ficam à parte (prefixo `svdemo:`), sem tocar nos reais; o Grimório tem "Restaurar a demo".
+
 ## Abas (barra de vidro no rodapé)
 
 | Aba | O que faz |
@@ -12,10 +16,35 @@ O SpellVault é o app das telas do Stitch (`stitch_magic_binder_companion`), fun
 | **Scanner** | Lê o nome da carta pela câmera ou por foto e identifica em português ou inglês. Mostra o preço, mostra quantas cópias você já tem, deixa guardar no álbum, num deck ou como "para troca" e leva para a ficha completa. **Modo lote:** o botão "Lote" no visor faz cada carta lida ir direto para o destino (dá para desfazer pela lista da sessão). Também tem PT-BR/EN no texto da carta e botão de compartilhar. |
 | **Consulta** | A busca de cartas, no estilo da LigaMagic. Veja abaixo. |
 | **Coleção** | Seu cofre (busca com botão de limpar, filtros por cor, tipo, foil, "para troca" e álbum, valor em R$, e onde cada carta está guardada) e a lista de desejos. |
-| **Álbuns** | Fichários, pastas, deck boxes e gaveteiros, com páginas e slots. O filtro **Livres (N)** mostra só o que tem espaço, o menu ⋮ tem as opções do fichário (editar, destino padrão do scanner, copiar a lista, retirar todas as cartas, remover) e cada carta tem o botão **Mover**. |
+| **Álbuns** | Fichários, pastas (2x2, 3x3, 4x3, **4x4**), deck boxes e gaveteiros, com páginas e slots. O filtro **Livres (N)** mostra só o que tem espaço, o menu ⋮ tem as opções do fichário (editar, destino padrão do scanner, copiar a lista, retirar todas as cartas, remover) e cada carta tem o botão **Mover**. O botão **Ver em 3D** abre o fichário aberto (veja abaixo). |
 | **Grimório** | Perfil, usuário da LigaMagic, números do cofre, decks, ajustes e cópia de segurança. |
 
 O dado **D20** e o botão de **perfil** do cabeçalho aparecem em todas as telas.
+
+## Álbum em 3D
+
+Em qualquer fichário com páginas (2x2, 3x3, 4x3, 4x4), **Ver em 3D** mostra o álbum aberto: capa de couro, argolas de ouro e as cartas de verdade nos bolsos. O desenho vem das telas `three.js` do Stitch.
+
+- **Arraste** para girar o fichário; os botões ‹ › viram as páginas (a folha vira de verdade).
+- **Livro aberto** mostra as duas páginas; **Uma página** chega mais perto.
+- **Destacar cor** apaga as cartas que não têm a cor escolhida.
+- **Toque numa carta** para inspecionar: arraste para girar, **Virar** mostra o verso, **Foil** liga o brilho, **Ficha** abre a ficha completa.
+- O motor 3D (three.js r149, licença MIT) vem junto em `assets/vendor/` e só é carregado nessa tela.
+
+## Forja de decks (Consulta › Forja de decks)
+
+Escreva o nome do comandante (em português ou inglês) e o app monta um deck de Commander de 100 cartas:
+
+- **Condições de vitória:** o plano do deck em uma frase, as cartas que fecham o jogo (drenar, combate extra, bônus em massa, vitória direta…) e os **combos**.
+- **Sinergia:** o app lê o texto do comandante e detecta o tema (tribal, fichas, marcadores +1/+1, sacrifício, feitiços, cemitério, artefatos, encantamentos, equipamentos, terrenos, piscar, ganho de vida, combate, tesouros, planeswalkers, veneno, wheel).
+- **O básico:** aceleração (9), compra (8), remoção (6), varredura, terrenos de utilidade e básicos na proporção das cores usadas.
+- **Opções:** orçamento por carta (livre, US$ 10, 3 ou 1) e preferência pelas cartas que você já tem. Cada carta tem **Trocar** (próxima sugestão da categoria) e **Tirar**.
+- **Resultado:** curva de mana, preço estimado em R$, quantas cartas você já tem, **Copiar lista**, **Compartilhar**, **Salvar deck** (vai para o Grimório), **Faltantes → desejos** e **Copiar o que falta** para a Compra por Lista da Liga.
+- **Já tem uma lista?** Cole o texto (EDHREC, Moxfield, Archidekt…) e o app mostra o que você tem, o preço, as cartas de vitória e os combos.
+
+**De onde vêm as sugestões.** Scryfall (cartas, ordenadas pela popularidade `edhrec_rank`, filtradas por cor, formato e tema) e Commander Spellbook (combos). O **EDHREC não é consultado pelo app**: os termos de uso dele proíbem acesso automático e republicação. Há só atalhos que abrem o comandante e os combos no EDHREC para você comparar, e a análise da lista que você cola.
+
+**Combos (Commander Spellbook):** o navegador bloqueia essa consulta (CORS), então os combos prontos na lista e os de "falta só uma carta" aparecem **no app Android**, onde a chamada sai pelo HTTP nativo. No navegador há o botão que abre o Spellbook.
 
 ## Aba Vida
 
@@ -72,5 +101,7 @@ Tudo fica salvo no aparelho (localStorage): coleção, álbuns, decks, cotaçõe
 
 - Dados, preços e imagens das cartas: [Scryfall](https://scryfall.com).
 - Leitura do nome na câmera: Tesseract.js, rodando no próprio aparelho.
+- Fichário em 3D: [three.js](https://threejs.org) r149 (MIT, em `assets/vendor/`).
+- Combos: [Commander Spellbook](https://commanderspellbook.com).
 - Os preços do Scryfall são em dólar, convertidos pela cotação definida no Grimório. São uma estimativa, não o preço de uma loja.
 - Projeto de fã, sem afiliação com a Wizards of the Coast nem com a LigaMagic. Magic: The Gathering é marca da Wizards of the Coast LLC.

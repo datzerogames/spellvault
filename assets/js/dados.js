@@ -1,10 +1,12 @@
 // SpellVault — dados do jogador guardados no aparelho (localStorage): álbuns, cartas, decks e ajustes.
 (function () {
   const SV = (window.SV = window.SV || {});
+  // a versão demo guarda tudo sob outro prefixo, para nunca misturar com os dados reais do jogador
+  const P = (SV.modo && SV.modo.pref) || "sv:";
   const LS = {
-    get(k, d) { try { const v = localStorage.getItem("sv:" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
-    set(k, v) { try { localStorage.setItem("sv:" + k, JSON.stringify(v)); } catch {} },
-    del(k) { try { localStorage.removeItem("sv:" + k); } catch {} },
+    get(k, d) { try { const v = localStorage.getItem(P + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(P + k, JSON.stringify(v)); } catch {} },
+    del(k) { try { localStorage.removeItem(P + k); } catch {} },
   };
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
@@ -12,6 +14,7 @@
     "2x2": { nome: "Álbum 2x2", cols: 2, rows: 2, icone: "auto_stories" },
     "3x3": { nome: "Pasta 3x3", cols: 3, rows: 3, icone: "grid_view" },
     "4x3": { nome: "Pasta 4x3", cols: 4, rows: 3, icone: "view_module" },
+    "4x4": { nome: "Pasta 4x4", cols: 4, rows: 4, icone: "apps" },
     caixa: { nome: "Deck box", cols: 0, rows: 0, icone: "inventory_2" },
     gaveteiro: { nome: "Gaveteiro", cols: 0, rows: 0, icone: "table_rows" },
   };
@@ -86,8 +89,21 @@
   };
 
   // coleção de exemplo no primeiro uso: álbuns montados e cartas buscadas no Scryfall
+  // versão demo: dois álbuns 4x4 "Goblinóides" já montados (dados em demo-dados.js, sem precisar de internet para abrir)
+  async function semearDemo() {
+    const dados = await SV.modo.carregarDados();
+    const albuns = dados.albuns.map((a) => Object.assign({ id: uid() }, a));
+    const decks = dados.decks.map((k) => Object.assign({ id: uid() }, k));
+    LS.set("albuns", albuns); LS.set("decks", decks);
+    d.salvarConfig({ nome: "Visitante", albumPadrao: albuns[0].id });
+    d.salvarCartas(dados.cartas.map((c, i) => Object.assign({ id: uid(), troca: false, deck: "", adicionada: Date.now() - i * 3600e3 }, c, { album: albuns[c.album].id })));
+    LS.set("semeado", true);
+    return true;
+  }
+
   d.semear = async function () {
     if (LS.get("semeado", false)) return false;
+    if (SV.modo && SV.modo.demo) return semearDemo();
     const verde = { id: uid(), nome: "Álbum 2x2 Verde", nota: "Fichário de raras e comandantes", tipo: "2x2", paginas: 25, sleeve: "Sleeve KMC Black", capa: "#24361f" };
     const preta = { id: uid(), nome: "Pasta 3x3 Preta", nota: "Coleção geral e trocas", tipo: "3x3", paginas: 40, sleeve: "Ultra Pro 9 bolsos", capa: "#1d1d1d" };
     const caixa = { id: uid(), nome: "Deck box EDH", nota: "Deck do Edgar Markov", tipo: "caixa", capacidade: 100, sleeve: "Dragon Shield Matte", capa: "#3d1b1c" };

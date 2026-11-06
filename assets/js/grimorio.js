@@ -17,6 +17,10 @@
         <header class="topo"><span class="selo">${ic("menu_book")}</span><div class="marca"><b>SpellVault</b><small>Grimório do planeswalker</small></div></header>
         <section class="tomo cantos perfil"><span class="selo">${ic("shield_person", "fill")}</span><div style="flex:1;min-width:0"><p class="rot">Planeswalker</p><h2 id="nome-p">${esc(cfg.nome)}</h2><p class="muted">${cartas.length} cartas · ${albuns.length} álbuns · ${decks.length} decks</p></div><button class="ico-bt" data-g="nome" aria-label="Mudar nome">${ic("edit")}</button></section>
 
+        ${SV.modo.demo ? `<section class="tomo cantos pad demo-aviso mt2"><p class="rot">${ic("science")}Você está na versão demonstração</p>
+          <p class="muted mt">Tudo aqui é de exemplo (dois álbuns 4x4 de Goblinóides) e fica guardado à parte. Mexa à vontade.</p>
+          <div class="dupla mt"><button class="bt" data-g="demo-reset">${ic("restart_alt")}Restaurar a demo</button><a class="bt ouro" href="${esc(SV.modo.urlCompleta())}">${ic("rocket_launch")}Versão completa</a></div></section>` : ""}
+
         <h2 class="rubrica"><span>Jogador e LigaMagic</span></h2>
         <section class="tomo cantos liga-perfil pad">
           <p class="rot">${ic("storefront")}Conta na LigaMagic</p>
@@ -34,7 +38,7 @@
           <ul class="copias">${top.map((c) => `<li>${c.imgPeq ? `<img src="${esc(c.imgPeq)}" alt="" style="width:36px;height:50px;border-radius:4px;object-fit:cover"/>` : ic("style")}<a href="#carta-${c.id}" style="flex:1;min-width:0"><b>${esc(SV.nomeExibido(c))}</b><small>${esc(c.setNome)}${c.foil ? " · Foil" : ""}</small></a><b class="ouro num" style="font-size:15px">${brl(SV.d.valor(c, cfg))}</b></li>`).join("") || `<li class="dim">Nenhuma carta ainda.</li>`}</ul></section>
 
         <h2 class="rubrica"><span>Decks</span></h2>
-        <section class="tomo pad"><ul class="decks">${decks.map((d) => `<li>${ic("swords")}<div style="flex:1;min-width:0"><b>${esc(d.nome)}</b><br/><small class="dim">${cartas.filter((c) => c.deck === d.id).length} cartas designadas${d.comandante ? " · " + esc(d.comandante) : ""}</small></div><button class="ico-bt" data-g="del-deck" data-id="${d.id}" aria-label="Apagar deck">${ic("delete")}</button></li>`).join("") || `<li class="dim">Nenhum deck. Crie um abaixo ou pela página de uma carta.</li>`}</ul>
+        <section class="tomo pad"><ul class="decks">${decks.map((d) => d.forja ? `<li>${ic("construction")}<a href="#forja-d${d.id}" style="flex:1;min-width:0"><b>${esc(d.nome)}</b><br/><small class="dim">Deck da Forja · ${d.lista.reduce((s, l) => s + (l.qtd || 1), 0) + 1} cartas${d.comandante ? " · " + esc(d.comandante) : ""}</small></a><button class="ico-bt" data-g="del-deck" data-id="${d.id}" aria-label="Apagar deck">${ic("delete")}</button></li>` : `<li>${ic("swords")}<div style="flex:1;min-width:0"><b>${esc(d.nome)}</b><br/><small class="dim">${cartas.filter((c) => c.deck === d.id).length} cartas designadas${d.comandante ? " · " + esc(d.comandante) : ""}</small></div><button class="ico-bt" data-g="del-deck" data-id="${d.id}" aria-label="Apagar deck">${ic("delete")}</button></li>`).join("") || `<li class="dim">Nenhum deck. Crie um abaixo ou pela página de uma carta.</li>`}</ul>
           <form class="fila mt" id="f-deck"><div class="campo" style="flex:1"><input id="novo-deck" placeholder="Nome do novo deck" aria-label="Nome do novo deck"/></div><button class="bt ouro">${ic("add")}Criar</button></form></section>
 
         <h2 class="rubrica"><span>Ajustes</span></h2>
@@ -77,6 +81,7 @@
           $("#f-lnick").addEventListener("submit", (ev) => { ev.preventDefault(); const v = $("#lnick-in").value.trim(); if (v.length < 2) { toast("Digite o seu usuário da Liga.", "badge"); return; } SV.d.salvarConfig({ ligaNick: v }); toast("Usuário da Liga guardado", "storefront"); SV.fecharFolha(); SV.telas.grimorio.montar(el); });
           const rm = $("#lnick-rm"); if (rm) rm.addEventListener("click", () => { SV.d.salvarConfig({ ligaNick: "" }); toast("Usuário removido", "delete"); SV.fecharFolha(); SV.telas.grimorio.montar(el); });
         }
+        else if (g === "demo-reset") { if (await confirmar("Restaurar a demo?", "Os álbuns e as cartas voltam ao estado inicial da demonstração.", "Restaurar", false)) { SV.d.apagarTudo(); location.hash = "#albuns"; location.reload(); } }
         else if (g === "idioma") { SV.d.salvarConfig({ idioma: b.dataset.v }); SV.telas.grimorio.montar(el); }
         else if (g === "del-deck") { if (await confirmar("Apagar este deck?", "As cartas continuam na coleção, só perdem a marcação de deck.", "Apagar")) { SV.d.salvarDecks(SV.d.decks().filter((d) => d.id !== b.dataset.id)); SV.d.salvarCartas(SV.d.cartas().map((c) => (c.deck === b.dataset.id ? Object.assign(c, { deck: "" }) : c))); SV.telas.grimorio.montar(el); } }
         else if (g === "lista-cofre") {
@@ -87,7 +92,7 @@
         }
         else if (g === "limpar-liga") { if (await confirmar("Apagar as cotações da Liga?", "As cotações que você digitou são apagadas e o valor volta a usar o Scryfall.", "Apagar")) { SV.d.LS.del("liga"); toast("Cotações apagadas", "delete"); SV.telas.grimorio.montar(el); } }
         else if (g === "exportar") { if (await SV.exportarNativo(`spellvault-${new Date().toISOString().slice(0, 10)}.json`, SV.d.exportar())) return; const blob = new Blob([SV.d.exportar()], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `spellvault-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast("Cópia de segurança baixada", "download"); }
-        else if (g === "apagar") { if (await confirmar("Apagar tudo?", "Coleção, álbuns, decks e partida deste aparelho serão apagados. Exporte uma cópia antes se quiser guardar.", "Apagar tudo")) { SV.d.apagarTudo(); toast("Cofre esvaziado", "delete"); location.hash = "#vida"; location.reload(); } }
+        else if (g === "apagar") { if (await confirmar("Apagar tudo?", "Coleção, álbuns, decks e partida deste aparelho serão apagados. Exporte uma cópia antes se quiser guardar.", "Apagar tudo")) { SV.d.apagarTudo(); toast("Cofre esvaziado", "delete"); location.hash = SV.modo.demo ? "#albuns" : "#vida"; location.reload(); } }
         else if (g === "precos") {
           const l = SV.d.cartas(); if (!l.length) return;
           b.disabled = true; b.innerHTML = `<span class="carregando"></span> Atualizando ${l.length} cartas…`;

@@ -21,6 +21,10 @@
       el.innerHTML = `<div class="pagina">
         <header class="topo"><span class="selo">${ic("collections_bookmark")}</span><div class="marca"><b>SpellVault</b><small>Álbuns · a estante</small></div>
           <div class="acoes"><button class="ico-bt" data-a="novo" aria-label="Novo álbum">${ic("library_add")}</button></div></header>
+        ${SV.modo.demo ? `<section class="tomo cantos pad demo-aviso"><p class="rot">${ic("science")}Versão demonstração</p>
+          <h2 style="font:600 22px var(--fc);margin-top:6px">Dois álbuns 4x4 de Goblinóides</h2>
+          <p class="muted">Folheie os fichários em 3D, toque numa carta para inspecionar (foil e verso) e mexa em tudo à vontade: os dados da demo ficam separados dos seus.</p>
+          <div class="dupla mt">${l.filter((a) => !SV.d.ehCaixa(a)).slice(0, 2).map((a, i) => `<a class="bt ouro quebra" href="#album3d-${a.id}">${ic("view_in_ar")}<span>Tomo ${i === 0 ? "I" : "II"} em 3D</span></a>`).join("")}</div></section>` : ""}
         <div class="resumo"><div class="tomo"><b class="num">${l.length}</b><span>álbuns</span></div><div class="tomo"><b class="num">${usados}</b><span>slots usados</span></div><div class="tomo"><b class="num">${total - usados}</b><span>slots livres</span></div></div>
         <h2 class="rubrica"><span>Estrutura de armazenamento</span></h2>
         <div class="estante">${l.map(livro).join("")}<button class="livro" data-a="novo" style="--capa:#1a140f;border-style:dashed">${ic("add_box")}<b>Novo físico</b><small>Álbum, pasta, deck box ou gaveteiro</small></button></div>
@@ -46,14 +50,14 @@
       if (filtroLivres && !caixa && paginasLivres.length && !paginasLivres.includes(pag)) pag = paginasLivres.find((n) => n > pag) || paginasLivres[0];
       el.innerHTML = `<div class="pagina">
         <header class="topo"><a class="ico-bt" href="#albuns" aria-label="Voltar">${ic("arrow_back")}</a><div class="marca"><b style="font-size:19px">${esc(a.nome)}</b><small>${esc(t.nome)}</small></div>
-          <div class="acoes"><button class="ico-bt" data-a="editar" aria-label="Editar álbum">${ic("edit")}</button><button class="ico-bt" data-a="opcoes" aria-label="Opções do fichário">${ic("more_vert")}</button></div></header>
+          <div class="acoes">${caixa ? "" : `<a class="ico-bt" href="#album3d-${a.id}" aria-label="Ver o álbum em 3D">${ic("view_in_ar")}</a>`}<button class="ico-bt" data-a="editar" aria-label="Editar álbum">${ic("edit")}</button><button class="ico-bt" data-a="opcoes" aria-label="Opções do fichário">${ic("more_vert")}</button></div></header>
         <section class="tomo cantos pad">
           <p class="rot">${ic("folder_special")}Fichário arcano${SV.d.config().albumPadrao === a.id ? " · padrão" : ""}</p>
           <h2 style="font:600 24px var(--fc);margin-top:6px">${esc(a.nome)}${a.nota ? ` · <span class="muted">${esc(a.nota)}</span>` : ""}</h2>
           <p class="muted">${esc(a.sleeve || "")}</p>
           <div class="fila mt"><span class="rot">${usados}/${cap} slots ocupados</span><span class="espaco"></span><span class="rot ouro">${pct}% cheio</span></div>
           <div class="barra"><i style="width:${pct}%"></i></div>
-          <div class="fila mt"><button class="chip ${filtroLivres ? "on" : ""}" data-a="livres" aria-pressed="${filtroLivres}" ${livresN ? "" : "disabled"}>${ic("filter_list")}Livres (${livresN})</button>${filtroLivres ? `<span class="dim" style="font-size:14px">${caixa ? "mostrando só as posições livres" : `${paginasLivres.length} página(s) com espaço`}</span>` : ""}</div>
+          <div class="fila mt">${caixa ? "" : `<a class="chip on" href="#album3d-${a.id}">${ic("view_in_ar")}Ver em 3D</a>`}<button class="chip ${filtroLivres ? "on" : ""}" data-a="livres" aria-pressed="${filtroLivres}" ${livresN ? "" : "disabled"}>${ic("filter_list")}Livres (${livresN})</button>${filtroLivres ? `<span class="dim" style="font-size:14px">${caixa ? "mostrando só as posições livres" : `${paginasLivres.length} página(s) com espaço`}</span>` : ""}</div>
         </section>
         ${caixa && filtroLivres ? `<section class="tomo pad mt"><p class="rot">${ic("filter_list")}Posições livres</p><div class="chips quebra mt">${Array.from({ length: cap }, (_, k) => k + 1).filter((s) => !oc[s]).slice(0, 60).map((s) => `<button class="chip" data-slot="${s}">#${s}</button>`).join("")}</div><p class="dim mt" style="font-size:14px">Toque numa posição para guardar uma carta nela.</p></section>`
         : caixa ? `<ul class="lista-caixa tomo pad mt">${Object.keys(oc).map(Number).sort((x, y) => x - y).map((s) => { const c = oc[s]; return `<li><span class="pos">#${s}</span>${c.imgPeq ? `<img src="${esc(c.imgPeq)}" alt=""/>` : ""}<a href="#carta-${c.id}" style="flex:1;min-width:0"><b style="font:600 16px var(--fc)">${esc(SV.nomeExibido(c))}</b><br/><small class="dim">${esc(c.setNome)} · ${esc(c.condicao)}${c.foil ? " · Foil" : ""}</small></a></li>`; }).join("") || `<li class="dim">Caixa vazia.</li>`}</ul>`

@@ -10,6 +10,11 @@ Companheiro de Magic: The Gathering com visual medieval dark fantasy.
 - **Álbuns:** fichários, pastas, deck boxes e gaveteiros, com páginas e slots.
 - **Consulta:** busca de cartas em português ou inglês, com filtros, atalhos e a ficha completa de cada carta (idiomas, regras, preços, legalidade, edições, decisões oficiais). Tem atalhos para a LigaMagic e guarda as cotações que você informar.
 - **Desejos:** lista de compras pronta para colar na Compra por Lista da LigaMagic.
+- **Álbum em 3D:** o fichário aberto, com páginas 2x2, 3x3, 4x3 ou 4x4, cartas de verdade e inspeção com foil e verso.
+- **Forja de decks:** escreva o comandante e receba um deck de Commander com sinergia, aceleração, compra, remoção e condições de vitória (combos pelo Commander Spellbook no app Android).
+- **Demo:** [abrir a demo](https://datzerogames.github.io/spellvault/?demo=1), com dois álbuns 4x4 de Goblinóides.
+
+**Instalar no Android:** [baixar.html](https://datzerogames.github.io/spellvault/baixar.html).
 
 Os dados ficam salvos no aparelho. Mais detalhes em [LEIA-ME.md](LEIA-ME.md).
 

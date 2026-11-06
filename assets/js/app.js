@@ -14,10 +14,13 @@
   let atual = null;
 
   function rota() {
-    const h = location.hash.replace(/^#/, "") || "vida";
+    // a demo abre direto nos álbuns, que é o que ela existe para mostrar
+    const h = location.hash.replace(/^#/, "") || (SV.modo.demo ? "albuns" : "vida");
     if (h.startsWith("carta-")) return { tela: "carta", arg: h.slice(6), aba: "colecao" };
     if (h.startsWith("ver-")) return { tela: "ver", arg: h.slice(4), aba: "consulta" };
+    if (h.startsWith("album3d-")) return { tela: "album3d", arg: h.slice(8), aba: "albuns" };
     if (h.startsWith("album-")) return { tela: "album", arg: h.slice(6), aba: "albuns" };
+    if (h === "forja" || h.startsWith("forja-")) return { tela: "forja", arg: h.slice(6), aba: "consulta" };
     const ok = ABAS.some((a) => a[0] === h);
     return { tela: ok ? h : "vida", aba: ok ? h : "vida" };
   }
@@ -44,8 +47,8 @@
     SV.telas[r.tela].montar(app, r.arg);
     acoesGlobais(r.tela);
     window.scrollTo(0, 0);
-    const nomes = { vida: "Vida", scanner: "Scanner", consulta: "Consulta", colecao: "Coleção", albuns: "Álbuns", grimorio: "Grimório", carta: "Carta", ver: "Ficha da carta", album: "Álbum" };
-    document.title = `${nomes[r.tela]} · SpellVault`;
+    const nomes = { vida: "Vida", scanner: "Scanner", consulta: "Consulta", colecao: "Coleção", albuns: "Álbuns", grimorio: "Grimório", carta: "Carta", ver: "Ficha da carta", album: "Álbum", album3d: "Álbum em 3D", forja: "Forja de decks" };
+    document.title = `${nomes[r.tela]} · SpellVault${SV.modo.demo ? " DEMO" : ""}`;
   }
   // quantas telas o jogador já abriu aqui: o "Voltar" só usa o histórico do navegador se ele for do próprio app
   SV.navegou = 0;

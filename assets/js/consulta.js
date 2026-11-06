@@ -100,12 +100,18 @@
       <form class="busca" id="f-cons" role="search">${ic("search")}<input id="q-cons" value="${esc(E.q)}" placeholder="Nome da carta, em português ou inglês" autocomplete="off" enterkeyhint="search"/><button class="bt peq ouro">Buscar</button></form>
       <div id="sugestoes" class="chips mt" style="min-height:0"></div>
       <div class="chips mt" aria-label="Atalhos">
+        <a class="chip on" href="#forja">${ic("construction")}Forja de decks</a>
         <button class="chip ${nF ? "on" : ""}" data-c="filtros">${ic("tune")}Filtros${nF ? ` (${nF})` : ""}</button>
         <button class="chip" data-c="limpar" ${E.feito || nF || E.q ? "" : "hidden"}>${ic("close")}Limpar</button>
         ${ATALHOS.map((a, i) => `<button class="chip" data-at="${i}">${ic(a.ico)}${a.nome}</button>`).join("")}
       </div>
       <div id="res-cons" class="mt"></div>
-      <div id="dicas-cons" ${E.feito ? "hidden" : ""}><section class="tomo cantos pad mt2"><p class="rot">${ic("storefront")}Na LigaMagic</p>
+      <div id="dicas-cons" ${E.feito ? "hidden" : ""}>
+        <section class="tomo cantos pad mt2 forja-chamada"><p class="rot">${ic("construction")}Forja de decks</p>
+          <h2 style="font:600 22px var(--fc);margin-top:6px">Escreva o comandante e receba um deck</h2>
+          <p class="muted">Cartas de alta sinergia, aceleração, compra, remoção e as condições de vitória (combos incluídos no app Android).</p>
+          <a class="bt ouro cheio mt" href="#forja">${ic("local_fire_department")}Abrir a Forja</a></section>
+        <section class="tomo cantos pad mt2"><p class="rot">${ic("storefront")}Na LigaMagic</p>
         <p class="muted mt">A LigaMagic mostra preços de lojas brasileiras e a variação do mercado. Abra por aqui e, se quiser, guarde a cotação na ficha da carta.</p>
         <div class="chips quebra mt"><a class="chip" href="${esc(SV.liga.urlAlta)}" target="_blank" rel="noopener">${ic("trending_up")}Cards em alta</a><a class="chip" href="${esc(SV.liga.urlQueda)}" target="_blank" rel="noopener">${ic("trending_down")}Cards em queda</a><a class="chip" href="${esc(SV.liga.urlReserved)}" target="_blank" rel="noopener">${ic("lock")}Reserved List</a><a class="chip" href="${esc(SV.liga.urlLista)}" target="_blank" rel="noopener">${ic("receipt_long")}Compra por lista</a><a class="chip" href="${esc(SV.liga.urlEdicoes)}" target="_blank" rel="noopener">${ic("layers")}Edições</a></div></section>
         <p class="dim mt" style="font-size:14.5px">Dica: dá para escrever a consulta como no Scryfall, por exemplo <b>t:legendary c:dimir cmc&lt;=3</b>.</p></div>
