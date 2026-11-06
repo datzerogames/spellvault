@@ -17,6 +17,15 @@
         <header class="topo"><span class="selo">${ic("menu_book")}</span><div class="marca"><b>SpellVault</b><small>Grimório do planeswalker</small></div></header>
         <section class="tomo cantos perfil"><span class="selo">${ic("shield_person", "fill")}</span><div style="flex:1;min-width:0"><p class="rot">Planeswalker</p><h2 id="nome-p">${esc(cfg.nome)}</h2><p class="muted">${cartas.length} cartas · ${albuns.length} álbuns · ${decks.length} decks</p></div><button class="ico-bt" data-g="nome" aria-label="Mudar nome">${ic("edit")}</button></section>
 
+        <h2 class="rubrica"><span>Jogador e LigaMagic</span></h2>
+        <section class="tomo cantos liga-perfil pad">
+          <p class="rot">${ic("storefront")}Conta na LigaMagic</p>
+          ${cfg.ligaNick ? `<div class="perfil-liga"><span class="selo">${ic("storefront", "fill")}</span><div style="flex:1;min-width:0"><b style="font:600 19px var(--fc)">${esc(cfg.ligaNick)}</b><br/><small class="dim">usuário informado por você, não verificado</small></div><button class="ico-bt" data-g="liga-nick" aria-label="Mudar o usuário da Liga">${ic("edit")}</button></div>` : `<p class="muted mt">Você ainda não informou o seu usuário da LigaMagic.</p>`}
+          <div class="dupla mt"><a class="bt ouro" href="${esc(SV.liga.BASE)}?view=logar" target="_blank" rel="noopener">${ic("login")}Entrar na Liga</a><a class="bt" href="${esc(SV.liga.BASE)}?view=newuser" target="_blank" rel="noopener">${ic("person_add")}Criar conta na Liga</a></div>
+          <div class="dupla mt"><button class="bt" data-g="liga-nick">${ic("badge")}${cfg.ligaNick ? "Mudar usuário" : "Informar meu usuário"}</button><a class="bt" href="${esc(SV.liga.BASE)}?view=colecao/colecao" target="_blank" rel="noopener">${ic("collections_bookmark")}Coleções na Liga</a></div>
+          <p class="dim mt" style="font-size:14.5px">A LigaMagic só aceita o login no site dela e não tem “entrar com a Liga” para outros apps. Faça o login lá, nos botões acima. O SpellVault guarda só o seu usuário, para deixar os atalhos à mão, e <b>nunca pede a sua senha da Liga</b>.</p>
+        </section>
+
         <h2 class="rubrica"><span>Tesouro</span></h2>
         <div class="resumo"><div class="tomo"><b class="num">${brl(total).replace("R$ ", "")}</b><span>R$ estimado</span></div><div class="tomo"><b class="num">${cartas.filter((c) => c.foil).length}</b><span>foils</span></div><div class="tomo"><b class="num">${cartas.filter((c) => c.raridade === "mythic").length}</b><span>míticas</span></div></div>
         <section class="tomo pad"><p class="rot">${ic("palette")}Cartas por cor</p>
@@ -50,7 +59,7 @@
       $("#cot", el).addEventListener("change", (e) => { const v = +e.target.value; if (v > 0) { SV.d.salvarConfig({ cotacao: v }); toast("Cotação atualizada", "currency_exchange"); } });
       $("#usar-liga", el).addEventListener("change", (e) => { SV.d.salvarConfig({ usarLiga: e.target.checked }); toast(e.target.checked ? "Valor estimado usa a cotação da Liga" : "Valor estimado usa só o Scryfall", "storefront"); });
       $("#alb-pad", el).addEventListener("change", (e) => { SV.d.salvarConfig({ albumPadrao: e.target.value }); toast("Álbum padrão salvo", "collections_bookmark"); });
-      $("#f-deck", el).addEventListener("submit", (e) => { e.preventDefault(); const n = $("#novo-deck", el).value.trim(); if (!n) return; SV.d.salvarDecks(SV.d.decks().concat({ id: SV.d.uid(), nome: n, comandante: "" })); toast("Deck criado", "swords"); SV.telas.grimorio.montar(el); });
+      $("#f-deck", el).addEventListener("submit", (e) => { e.preventDefault(); const n = $("#novo-deck", el).value.trim(); if (!n) { toast("Dê um nome ao deck.", "edit"); return; } SV.d.salvarDecks(SV.d.decks().concat({ id: SV.d.uid(), nome: n, comandante: "" })); toast("Deck criado", "swords"); SV.telas.grimorio.montar(el); });
       $("#imp", el).addEventListener("change", async (e) => {
         const arq = e.target.files[0]; if (!arq) return;
         try { const txt = await arq.text(); if (await confirmar("Importar cópia de segurança?", "O cofre atual deste aparelho será substituído pelo do arquivo.", "Importar", false)) { SV.d.importar(txt); toast("Cofre restaurado", "restore"); SV.telas.grimorio.montar(el); } }
@@ -61,6 +70,13 @@
         const b = e.target.closest("[data-g]"); if (!b) return;
         const g = b.dataset.g;
         if (g === "nome") { SV.folha(`<h2>Seu nome de planeswalker</h2><form class="form mt" id="f-nome"><div class="campo"><input id="nome-in" value="${esc(SV.d.config().nome)}" maxlength="30" autofocus/></div><button class="bt ouro cheio">Salvar</button></form>`); $("#f-nome").addEventListener("submit", (ev) => { ev.preventDefault(); SV.d.salvarConfig({ nome: $("#nome-in").value.trim() || "Planeswalker" }); SV.fecharFolha(); SV.telas.grimorio.montar(el); }); }
+        else if (g === "liga-nick") {
+          SV.folha(`<h2>Seu usuário na LigaMagic</h2><p class="muted">Só o nome de usuário, para os atalhos. Não digite a senha da Liga aqui.</p>
+            <form class="form mt" id="f-lnick"><div class="campo"><label for="lnick-in">Usuário na Liga</label><input id="lnick-in" value="${esc(SV.d.config().ligaNick || "")}" maxlength="40" autocomplete="off" autocapitalize="none" autofocus/></div>
+            <button class="bt ouro cheio">${ic("save")}Salvar usuário</button>${SV.d.config().ligaNick ? `<button type="button" class="bt sangue cheio" id="lnick-rm">${ic("delete")}Remover usuário</button>` : ""}</form>`);
+          $("#f-lnick").addEventListener("submit", (ev) => { ev.preventDefault(); const v = $("#lnick-in").value.trim(); if (v.length < 2) { toast("Digite o seu usuário da Liga.", "badge"); return; } SV.d.salvarConfig({ ligaNick: v }); toast("Usuário da Liga guardado", "storefront"); SV.fecharFolha(); SV.telas.grimorio.montar(el); });
+          const rm = $("#lnick-rm"); if (rm) rm.addEventListener("click", () => { SV.d.salvarConfig({ ligaNick: "" }); toast("Usuário removido", "delete"); SV.fecharFolha(); SV.telas.grimorio.montar(el); });
+        }
         else if (g === "idioma") { SV.d.salvarConfig({ idioma: b.dataset.v }); SV.telas.grimorio.montar(el); }
         else if (g === "del-deck") { if (await confirmar("Apagar este deck?", "As cartas continuam na coleção, só perdem a marcação de deck.", "Apagar")) { SV.d.salvarDecks(SV.d.decks().filter((d) => d.id !== b.dataset.id)); SV.d.salvarCartas(SV.d.cartas().map((c) => (c.deck === b.dataset.id ? Object.assign(c, { deck: "" }) : c))); SV.telas.grimorio.montar(el); } }
         else if (g === "lista-cofre") {

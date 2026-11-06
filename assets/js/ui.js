@@ -50,8 +50,13 @@
     try { await navigator.clipboard.writeText(txt); toast("Copiado", "content_copy"); }
     catch { const i = document.createElement("textarea"); i.value = txt; document.body.appendChild(i); i.select(); try { document.execCommand("copy"); toast("Copiado", "content_copy"); } catch {} i.remove(); }
   }
+  // compartilhar pelo menu nativo do celular; onde não existir, copia o texto
+  async function compartilhar(titulo, texto) {
+    if (navigator.share) { try { await navigator.share({ title: titulo, text: texto }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+    return copiar(texto);
+  }
   const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
   const nomeRaridade = { common: "Comum", uncommon: "Incomum", rare: "Rara", mythic: "Mítica", special: "Especial", bonus: "Bônus" };
 
-  Object.assign(SV, { $, $$, esc, ic, brl, num2, dataBr, mana, toast, folha, fecharFolha, confirmar, copiar, debounce, nomeRaridade });
+  Object.assign(SV, { $, $$, esc, ic, brl, num2, dataBr, mana, toast, folha, fecharFolha, confirmar, copiar, compartilhar, debounce, nomeRaridade });
 })();

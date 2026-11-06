@@ -36,7 +36,7 @@
     salvarCartas: (l) => LS.set("cartas", l),
     adicionar(dadosSf, extra = {}) {
       const l = d.cartas();
-      const c = Object.assign({ id: uid(), foil: false, condicao: "NM", idioma: "EN", album: "", slot: 0, deck: "", adicionada: Date.now() }, dadosSf, extra);
+      const c = Object.assign({ id: uid(), foil: false, troca: false, condicao: "NM", idioma: "EN", album: "", slot: 0, deck: "", adicionada: Date.now() }, dadosSf, extra);
       if (c.album && !c.slot) c.slot = d.proximoLivre(c.album);
       l.push(c); d.salvarCartas(l); return c;
     },

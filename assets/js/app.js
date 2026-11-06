@@ -24,6 +24,16 @@
   function nav(aba) {
     $("#nav").innerHTML = ABAS.map(([k, i, t]) => `<a href="#${k}" class="${k === aba ? "on" : ""}" ${k === aba ? 'aria-current="page"' : ""}>${ic(i)}<span>${t}</span></a>`).join("");
   }
+  // os dois botões do cabeçalho do desenho original, em todas as telas: rolar o D20 e abrir o perfil
+  function acoesGlobais(tela) {
+    const topo = $(".topo", app); if (!topo) return; // a tela Vida já tem os dela
+    let acoes = $(".acoes", topo);
+    if (!acoes) { acoes = document.createElement("div"); acoes.className = "acoes"; topo.appendChild(acoes); }
+    const nome = (SV.d.config().nome || "?").trim();
+    acoes.insertAdjacentHTML("afterbegin", `<button class="ico-bt" data-sv="d20" aria-label="Rolar dados">${ic("casino")}</button>${tela === "grimorio" ? "" : `<a class="ico-bt avatar-mini" href="#grimorio" aria-label="Perfil e configurações">${esc(nome[0] || "?")}</a>`}`);
+  }
+  document.addEventListener("click", (e) => { if (e.target.closest("[data-sv=d20]")) SV.vida.dados(); });
+
   function render() {
     SV.fecharFolha();
     if (atual && SV.telas[atual].desmontar) SV.telas[atual].desmontar(app);
@@ -32,11 +42,14 @@
     nav(r.aba);
     document.body.dataset.tela = r.tela;
     SV.telas[r.tela].montar(app, r.arg);
+    acoesGlobais(r.tela);
     window.scrollTo(0, 0);
     const nomes = { vida: "Vida", scanner: "Scanner", consulta: "Consulta", colecao: "Coleção", albuns: "Álbuns", grimorio: "Grimório", carta: "Carta", ver: "Ficha da carta", album: "Álbum" };
     document.title = `${nomes[r.tela]} · SpellVault`;
   }
-  window.addEventListener("hashchange", render);
+  // quantas telas o jogador já abriu aqui: o "Voltar" só usa o histórico do navegador se ele for do próprio app
+  SV.navegou = 0;
+  window.addEventListener("hashchange", () => { SV.navegou++; render(); });
 
   // brasas subindo ao fundo (desligadas com "reduzir movimento")
   function brasas() {

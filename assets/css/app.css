@@ -158,7 +158,7 @@ h1, h2, h3 { font-family: var(--ft); font-weight: 700; letter-spacing: 0.02em; l
 .vida-topo .ico-bt { width: 40px; height: 40px; }
 .relogio { display: inline-flex; align-items: center; gap: 6px; height: 42px; padding: 0 12px; border-radius: 12px; background: rgba(16, 12, 9, 0.85); border: 1px solid rgba(201, 162, 74, 0.3); font: 700 15px var(--ft); color: var(--ouro2); font-variant-numeric: tabular-nums; }
 .relogio .ms { font-size: 18px; }
-.mesa { position: relative; z-index: 1; display: grid; gap: 8px; padding: 0 10px; height: calc(100dvh - 70px - var(--nav-h) - 40px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); min-height: 440px; }
+.mesa { position: relative; z-index: 1; display: grid; gap: 8px; padding: 0 10px; height: calc(100dvh - 150px - var(--nav-h) - 40px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); min-height: 440px; }
 .mesa.j2 { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
 .mesa.j3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
 .mesa.j3 .jog:first-child { grid-column: 1 / -1; }
@@ -344,7 +344,8 @@ h1, h2, h3 { font-family: var(--ft); font-weight: 700; letter-spacing: 0.02em; l
 .visor .faixa-nome::after { content: "nome"; position: absolute; right: -2px; top: 100%; font: 600 9.5px var(--ft); letter-spacing: 0.12em; text-transform: uppercase; color: var(--arcano); }
 .visor .linha-scan { position: absolute; left: 4%; right: 4%; height: 2px; top: 10%; background: linear-gradient(90deg, transparent, var(--arcano), transparent); box-shadow: 0 0 12px var(--arcano); animation: varre 2.4s ease-in-out infinite; }
 @keyframes varre { 50% { top: 88%; } }
-.visor .hud { position: absolute; left: 12px; right: 12px; top: 12px; display: flex; justify-content: space-between; gap: 8px; z-index: 2; }
+.visor .hud { position: absolute; left: 12px; right: 12px; top: 12px; display: flex; justify-content: space-between; gap: 8px; z-index: 5; pointer-events: none; }
+.visor .hud > * { pointer-events: auto; }
 .visor .hud span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: rgba(8, 6, 4, 0.75); border: 1px solid rgba(201, 162, 74, 0.3); font: 700 10.5px var(--ft); letter-spacing: 0.1em; text-transform: uppercase; color: var(--perg); }
 .visor .hud .vivo { color: var(--veneno); }
 .visor .aviso { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font: italic 15px var(--fc); color: var(--tinta); z-index: 2; padding: 0 16px; }
@@ -478,3 +479,70 @@ h1, h2, h3 { font-family: var(--ft); font-weight: 700; letter-spacing: 0.02em; l
   .relogio { padding: 0 9px; font-size: 13px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } #brasas { display: none; } }
+
+/* ---------- VIDA: barra de ferramentas, mana pool, comandantes, combo ---------- */
+.barra-vida { padding: 0 12px 6px; position: relative; z-index: 2; }
+.barra-vida .chip { height: 36px; }
+.chip .ms { font-size: 17px; }
+.chip.combo { color: #1b1206; border-color: #f0d68f; background: linear-gradient(180deg, #f0d68f, #b88f3a); box-shadow: 0 0 16px rgba(235, 207, 134, 0.3); }
+.avatar-mini { font: 700 17px var(--ft); color: var(--ouro2); border-radius: 50%; background: radial-gradient(circle at 35% 30%, #5a3b1f, #241509 70%); text-transform: uppercase; }
+.ico-bt[disabled] { opacity: 0.35; pointer-events: none; }
+.cont.exp .ms { color: var(--arcano); }
+.mana-total { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 12px; background: rgba(8, 6, 4, 0.7); border: 1px solid rgba(201, 162, 74, 0.25); margin-bottom: 4px; }
+.mana-total b { font: 700 40px var(--ft); color: var(--ouro2); text-shadow: 0 0 20px rgba(235, 207, 134, 0.35); }
+.mp-q { gap: 6px; }
+.mp-q b { min-width: 28px; }
+.res-item { display: flex; align-items: center; gap: 8px; }
+.res-item .res-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 12px; text-align: left; background: rgba(16, 12, 9, 0.8); border: 1px solid rgba(201, 162, 74, 0.2); }
+.res-item .res-main:hover { border-color: var(--ouro); }
+.res-item .res-main > div { min-width: 0; }
+.res-item .mana-id { display: block; margin-top: 4px; }
+.combo-palco { text-align: center; padding: 6px 0 2px; }
+.combo-raio { font-size: 66px; color: var(--ouro2); filter: drop-shadow(0 0 18px rgba(235, 207, 134, 0.7)); animation: raio 1.4s ease-in-out infinite; }
+@keyframes raio { 50% { transform: scale(1.12); filter: drop-shadow(0 0 30px rgba(226, 114, 47, 0.9)); } }
+@media (max-width: 420px) {
+  .jog .cab { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .jog .cab .icos { margin-left: 0; }
+  .jog .mini { width: 30px; height: 30px; }
+  .jog .mini .ms { font-size: 17px; }
+}
+
+/* ---------- ÁLBUNS (livres, mover), COLEÇÃO (local, troca), SCANNER (lote), PERFIL ---------- */
+.slot-wrap { position: relative; }
+.slot-wrap .slot { display: block; }
+.slot-mover { position: absolute; right: 6px; top: 6px; z-index: 4; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: var(--ouro2); background: rgba(10, 8, 6, 0.82); border: 1px solid rgba(201, 162, 74, 0.5); }
+.slot-mover .ms { font-size: 18px; }
+.slot-wrap .selo-foil { right: 42px; }
+.slot-wrap.apagado { opacity: 0.32; }
+.slot.livre-realce { border: 2px solid var(--verde-livre, #6fbf4f); box-shadow: 0 0 16px rgba(111, 191, 79, 0.3); }
+.slot.livre-realce .vazio-slot { color: #b9e8a5; }
+.carta-mini .loc { display: flex; align-items: center; gap: 3px; margin-top: 3px; font: 600 10.5px var(--ft); letter-spacing: 0.03em; color: var(--tinta2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.carta-mini .loc .ms { font-size: 13px; color: var(--ouro3); flex: none; }
+.busca .ico-bt { width: 34px; height: 34px; border-radius: 10px; }
+.visor .hud .hud-lote { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: rgba(8, 6, 4, 0.75); border: 1px solid rgba(201, 162, 74, 0.3); font: 700 10.5px var(--ft); letter-spacing: 0.1em; text-transform: uppercase; color: var(--perg); }
+.visor .hud .hud-lote.on { color: #1b1206; border-color: #f0d68f; background: linear-gradient(180deg, #f0d68f, #b88f3a); }
+.liga-perfil { border-color: rgba(226, 114, 47, 0.5); background: linear-gradient(180deg, rgba(70, 36, 18, 0.5), rgba(22, 17, 13, 0.94)); }
+.perfil-liga { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: rgba(8, 6, 4, 0.7); border: 1px solid rgba(201, 162, 74, 0.25); margin-top: 10px; }
+.perfil-liga .selo { width: 46px; height: 46px; }
+
+/* barra da Vida em grade 3x2: os seis botões ficam todos à vista no celular */
+.barra-vida { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; overflow: visible; padding: 0 10px 6px; }
+.barra-vida .chip { height: 34px; padding: 0 6px; justify-content: center; gap: 4px; font-size: 10.5px; letter-spacing: 0.04em; min-width: 0; overflow: hidden; white-space: nowrap; }
+.barra-vida .chip .ms { font-size: 16px; flex: none; }
+
+/* celulares estreitos (360 px): cabeçalho e painéis da Vida mais compactos */
+@media (max-width: 380px) {
+  .vida-topo { gap: 4px; padding-left: 6px; padding-right: 6px; }
+  .vida-topo .marca small { display: none; }
+  .relogio { padding: 0 7px; font-size: 12px; height: 38px; }
+  .vida-topo .ico-bt { width: 36px; height: 36px; }
+  .barra-vida { padding: 0 6px 6px; }
+  .jog .cont { height: 25px; padding: 0 5px; gap: 2px; font-size: 11px; letter-spacing: 0; }
+  .jog .cont .ms { font-size: 14px; }
+  .jog .contadores { gap: 4px; }
+  .jog .passos { gap: 4px; }
+  .jog .passos button { height: 28px; }
+  .jog .vida b { font-size: clamp(38px, 8.5vh, 80px); }
+  .jog .mini { width: 26px; height: 26px; }
+  .jog .nome { font-size: 13px; }
+}

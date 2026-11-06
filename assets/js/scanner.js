@@ -1,10 +1,11 @@
 // SpellVault — scanner: câmera (ou foto) → leitura do nome da carta (Tesseract.js, no próprio aparelho)
-// → identificação no Scryfall, com tradução PT/EN, preço e destino no álbum.
+// → identificação no Scryfall, com tradução PT/EN, preço e destino (álbum, deck, troca). Tem modo lote.
 (function () {
   const SV = (window.SV = window.SV || {});
-  const { $, esc, ic, brl, mana, toast } = SV;
+  const { $, $$, esc, ic, brl, mana, toast } = SV;
   const TESSERACT = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
-  let fluxo = null, leitor = null, carregandoLeitor = null, atual = null, lote = [], destino = "", foil = false, ocupado = false;
+  let fluxo = null, leitor = null, carregandoLeitor = null, atual = null, lote = [], destino = "", deckAlvo = "", trocaAlvo = false, foil = false, ocupado = false, abrindo = false;
+  let modoLote = false, idiomaRes = "pt";
 
   function carregarLeitor(status) {
     if (leitor) return Promise.resolve(leitor);
@@ -50,8 +51,12 @@
       st(`<span class="carregando"></span> Consultando o oráculo do Scryfall…`);
       let achou = null, lido = linhas[0] ? linhas[0][0] : "";
       for (const [t] of linhas) { achou = await SV.sf.identificar(t).catch(() => null); if (achou) { lido = t; break; } }
-      if (achou) { mostrar(el, achou, linhas.length ? linhas[0][1] : 0); lote.unshift({ c: achou, id: null }); desenharLote(el); st(`${ic("auto_awesome")} Reconhecida: “${esc(lido)}”`); }
-      else { st(`${ic("help")} Não reconheci a carta.`); manual(el, lido); }
+      if (achou) {
+        lote.unshift({ c: achou, id: null }); desenharLote(el);
+        mostrar(el, achou, linhas.length ? linhas[0][1] : 0);
+        st(`${ic("auto_awesome")} Reconhecida: “${esc(lido)}”`);
+        if (modoLote) adicionar(el, achou); // modo lote: já vai direto para o destino
+      } else { st(`${ic("help")} Não reconheci a carta.`); manual(el, lido); }
     } catch (e) { st(`${ic("error")} ${esc(e.message || "Falha na leitura.")}`); }
     finally { ocupado = false; const o = $("#obt", el); o && o.classList.remove("ocupado"); }
   }
@@ -62,46 +67,59 @@
     $("#q-manual", el).focus();
   }
 
+  // texto da carta no idioma escolhido (PT-BR quando existe impressão em português)
+  const textosDe = (c) => { const pt = idiomaRes === "pt" && c.pt ? c.pt : null; return { nome: pt ? pt.nome : c.nome, sub: pt ? c.nome : "", tipo: pt && pt.tipo ? pt.tipo : c.tipo, texto: pt && pt.texto ? pt.texto : c.texto }; };
+  function aplicarRes(el) {
+    if (!atual || !$("#nome-r", el)) return;
+    const t = textosDe(atual);
+    $("#nome-r", el).textContent = t.nome; $("#en-r", el).textContent = t.sub; $("#tipo-r", el).textContent = t.tipo; $("#texto-r", el).textContent = t.texto;
+    $$("[data-rl]", el).forEach((b) => b.classList.toggle("on", b.dataset.rl === idiomaRes));
+  }
+
   async function mostrar(el, c, conf) {
     atual = c;
-    const cfg = SV.d.config(), copias = SV.d.copias(c.nome);
+    const cfg = SV.d.config(), copias = SV.d.copias(c.nome), t = textosDe(c);
     if (destino === "") destino = cfg.albumPadrao || "";
-    const albuns = SV.d.albuns(), a = SV.d.album(destino);
+    const albuns = SV.d.albuns(), decks = SV.d.decks(), a = SV.d.album(destino);
     $("#resultado", el).innerHTML = `<section class="tomo cantos resultado">
         <img src="${esc(c.img)}" alt="${esc(c.nome)}"/>
         <div style="min-width:0">
           <div class="fila"><span class="raridade ${esc(c.raridade)}">${esc(SV.nomeRaridade[c.raridade] || "")}</span>${conf ? `<span class="etiqueta">${Math.round(conf)}% de leitura</span>` : ""}<span class="espaco"></span>${mana(c.custo)}</div>
-          <h3 id="nome-r">${esc(c.pt ? c.pt.nome : c.nome)}</h3><p class="dim" id="en-r" style="font-style:italic">${c.pt ? esc(c.nome) : ""}</p>
-          <p style="font-size:15px;margin-top:6px">${esc(c.tipo)}</p>
+          <h3 id="nome-r">${esc(t.nome)}</h3><p class="dim" id="en-r" style="font-style:italic">${esc(t.sub)}</p>
+          <p id="tipo-r" style="font-size:15px;margin-top:6px">${esc(t.tipo)}</p>
           <p class="ouro" style="font:700 22px var(--ft);margin-top:6px">${SV.d.valorInfo(c).v ? brl(SV.d.valorInfo(c).v) : "Sem preço"}${SV.d.valorInfo(c).fonte === "liga" ? ' <i class="liga-tag">Liga</i>' : ""}</p>
           <p class="dim" style="font-size:13.5px">${esc(c.setNome)} · ${esc(c.set.toUpperCase())} #${esc(c.num)}</p>
+          <div class="seg mt" style="max-width:170px" role="group" aria-label="Idioma do texto"><button data-rl="pt" class="${idiomaRes === "pt" ? "on" : ""}">PT-BR</button><button data-rl="en" class="${idiomaRes === "en" ? "on" : ""}">EN</button></div>
         </div>
       </section>
-      <div class="texto-regras mt" id="texto-r">${esc(c.pt && c.pt.texto ? c.pt.texto : c.texto)}</div>
+      <div class="texto-regras mt" id="texto-r">${esc(t.texto)}</div>
       <section class="tomo pad mt"><p class="rot">${ic("layers")}No cofre</p><p class="mt">${copias.length ? `Você já possui ${copias.length} cópia(s) (${copias.filter((x) => x.foil).length} foil).` : "Primeira cópia desta carta."}</p>
         <p class="rot mt">Destino físico</p>
         <div class="chips mt">${albuns.map((x) => `<button class="chip ${x.id === destino ? "on" : ""}" data-dest="${x.id}">${ic(SV.d.TIPOS[x.tipo].icone)}${esc(x.nome)}</button>`).join("")}<button class="chip ${!a ? "on" : ""}" data-dest="-">${ic("inventory")}Só coleção</button></div>
+        <p class="rot mt">Deck e troca</p>
+        <div class="chips mt"><button class="chip ${!deckAlvo ? "on" : ""}" data-deck="">${ic("block")}Nenhum deck</button>${decks.map((d) => `<button class="chip ${d.id === deckAlvo ? "on" : ""}" data-deck="${d.id}">${ic("swords")}${esc(d.nome)}</button>`).join("")}<button class="chip ${trocaAlvo ? "on" : ""}" data-troca="1" aria-pressed="${trocaAlvo}">${ic("swap_horiz")}Para troca</button></div>
         ${c.foilPossivel ? `<label class="check mt"><input type="checkbox" id="foil-s" ${foil ? "checked" : ""}/>Esta cópia é foil</label>` : ""}
       </section>
       <button class="bt ouro cheio mt quebra" data-s="add">${ic("bookmark_add")}<span>Adicionar à coleção${a ? `<small>${esc(a.nome)} · slot ${SV.d.proximoLivre(a.id) || "—"}</small>` : ""}</span></button>
       <div class="dupla mt"><a class="bt" href="#ver-${esc(c.sf)}">${ic("menu_book")}Ficha completa</a><a class="bt" href="${esc(SV.liga.urlCarta(c.nome))}" target="_blank" rel="noopener">${ic("storefront")}Ver na Liga</a></div>
-      <div class="dupla mt"><button class="bt" data-s="mais">${ic("tune")}Mais opções</button><a class="bt fantasma" href="${esc(c.uri)}" target="_blank" rel="noopener">${ic("open_in_new")}Scryfall</a></div>`;
+      <div class="dupla mt"><button class="bt" data-s="mais">${ic("tune")}Mais opções</button><button class="bt" data-s="compartilhar">${ic("share")}Compartilhar</button></div>
+      <a class="bt fantasma cheio mt" href="${esc(c.uri)}" target="_blank" rel="noopener">${ic("open_in_new")}Ver no Scryfall</a>`;
     if (!c.pt && cfg.idioma === "pt") {
       const pt = await SV.sf.emPortugues(c.set, c.num) || (await SV.sf.buscar(`!"${c.nome}" lang:pt`, "&include_multilingual=true").catch(() => []))[0]?.pt;
-      if (pt && atual === c) { c.pt = pt; $("#nome-r", el).textContent = pt.nome; $("#en-r", el).textContent = c.nome; if (pt.texto) $("#texto-r", el).textContent = pt.texto; desenharLote(el); }
+      if (pt && atual === c) { c.pt = pt; aplicarRes(el); desenharLote(el); }
     }
   }
 
   function desenharLote(el) {
     const l = $("#lote", el); if (!l) return;
     $("#n-lote", el).textContent = lote.length;
-    l.innerHTML = lote.length ? lote.map((x, i) => `<li><img src="${esc(x.c.imgPeq)}" alt=""/><span style="flex:1;min-width:0"><b style="font:600 15px var(--fc)">${esc(x.c.pt ? x.c.pt.nome : x.c.nome)}</b><br/><small class="dim">${esc(x.c.setNome)}</small></span>${x.id ? `<a class="etiqueta ouro" href="#carta-${x.id}">No cofre</a>` : `<button class="bt peq" data-lote="${i}">${ic("add")}</button>`}</li>`).join("") : `<li class="dim" style="font-style:italic">As cartas lidas nesta sessão aparecem aqui.</li>`;
+    l.innerHTML = lote.length ? lote.map((x, i) => `<li><img src="${esc(x.c.imgPeq)}" alt=""/><span style="flex:1;min-width:0"><b style="font:600 15px var(--fc)">${esc(x.c.pt ? x.c.pt.nome : x.c.nome)}</b><br/><small class="dim">${esc(x.c.setNome)}</small></span>${x.id ? `<a class="etiqueta ouro" href="#carta-${x.id}">No cofre</a><button class="ico-bt" data-desfazer="${i}" aria-label="Desfazer: tirar ${esc(x.c.nome)} do cofre" style="width:36px;height:36px">${ic("undo")}</button>` : `<button class="bt peq" data-lote="${i}">${ic("add")}</button>`}</li>`).join("") : `<li class="dim" style="font-style:italic">As cartas lidas nesta sessão aparecem aqui.</li>`;
   }
 
   function adicionar(el, c, i) {
     const a = SV.d.album(destino);
     if (a && !SV.d.proximoLivre(a.id)) { toast("Esse álbum está cheio.", "warning"); return; }
-    const nova = SV.d.adicionar(c, { album: a ? a.id : "", foil: !!(($("#foil-s", el) || {}).checked) });
+    const nova = SV.d.adicionar(c, { album: a ? a.id : "", deck: deckAlvo, troca: trocaAlvo, foil: !!(($("#foil-s", el) || {}).checked) });
     const item = i != null ? lote[i] : lote.find((x) => x.c === c && !x.id); if (item) item.id = nova.id;
     desenharLote(el);
     toast(a ? `Guardada: ${a.nome}, slot ${nova.slot}` : "Adicionada à coleção", "bookmark_added");
@@ -109,17 +127,26 @@
   }
 
   async function ligarCamera(el) {
+    const st = $("#scan-status", el);
+    if (abrindo) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      st.innerHTML = `${ic("no_photography")} Este navegador não libera a câmera aqui. Use “Enviar foto” ou digite o nome.`; toast("Câmera indisponível neste navegador.", "no_photography"); return;
+    }
+    abrindo = true;
+    st.innerHTML = `<span class="carregando"></span> Abrindo a câmera… se o aparelho perguntar, toque em Permitir.`;
+    const demora = setTimeout(() => { if (!fluxo) st.innerHTML = `${ic("hourglass_top")} A câmera está demorando. Confira a permissão do navegador ou use “Enviar foto”.`; }, 8000);
     try {
       fluxo = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
       const v = $("#video", el); v.srcObject = fluxo; await v.play();
       $("#inicio", el).hidden = true; $("#foto", el).hidden = true; v.hidden = false;
-      $("#hud-estado", el).innerHTML = `<span class="vivo">●</span> Câmera ativa`;
+      $("#hud-estado", el).innerHTML = `<span class="vivo">●</span> Câmera ativa`; st.textContent = "";
       const trilha = fluxo.getVideoTracks()[0], cap = trilha.getCapabilities ? trilha.getCapabilities() : {};
       $("#flash", el).hidden = !cap.torch;
     } catch (e) {
-      toast("Não consegui abrir a câmera. Use “Enviar foto”.", "no_photography");
-      $("#scan-status", el).innerHTML = `${ic("no_photography")} Câmera indisponível: envie uma foto ou digite o nome.`;
-    }
+      const negada = e && /NotAllowed|Permission/i.test(e.name + e.message);
+      toast(negada ? "Acesso à câmera negado." : "Não consegui abrir a câmera. Use “Enviar foto”.", "no_photography");
+      st.innerHTML = `${ic("no_photography")} ${negada ? "A permissão da câmera foi negada. Libere nas configurações do navegador" : "Câmera indisponível"}: ou envie uma foto, ou digite o nome.`;
+    } finally { clearTimeout(demora); abrindo = false; }
   }
   function desligarCamera() { if (fluxo) fluxo.getTracks().forEach((t) => t.stop()); fluxo = null; }
 
@@ -128,14 +155,14 @@
     montar(el) {
       // pedido vindo de um álbum ("Escanear p/ slot #21"): usa esse álbum como destino
       const pedido = SV.destinoScanner; SV.destinoScanner = null;
-      atual = null; destino = pedido ? pedido.album : ""; foil = false;
+      atual = null; destino = pedido ? pedido.album : ""; foil = false; deckAlvo = ""; trocaAlvo = false; idiomaRes = SV.d.config().idioma === "en" ? "en" : "pt";
       el.innerHTML = `<div class="pagina">
         <header class="topo"><span class="selo">${ic("center_focus_strong")}</span><div class="marca"><b>SpellVault</b><small>Scanner · olho arcano</small></div>
           <div class="acoes"><button class="ico-bt" id="flash" data-s="flash" hidden aria-label="Lanterna">${ic("flashlight_on")}</button><button class="ico-bt" data-s="manual" aria-label="Digitar nome">${ic("keyboard")}</button></div></header>
         <div class="visor" data-s="visor">
           <video id="video" playsinline muted hidden></video><img id="foto" class="foto" alt="Foto enviada" hidden/>
           <div class="moldura"><i></i><i></i><i></i><i></i><span class="faixa-nome"></span><span class="linha-scan"></span></div>
-          <div class="hud"><span id="hud-estado">${ic("visibility")} Pronto</span><span>${ic("photo_library")} Lote: <b id="n-lote">0</b></span></div>
+          <div class="hud"><span id="hud-estado">${ic("visibility")} Pronto</span><button class="hud-lote ${modoLote ? "on" : ""}" data-s="lote" aria-pressed="${modoLote}" aria-label="Modo lote">${ic("photo_library")} Lote: <b id="n-lote">0</b></button></div>
           <div class="inicio" id="inicio">${ic("center_focus_strong", "grande")}<p style="font:600 18px var(--ft);color:var(--ouro2)">Aponte o olho arcano para a carta</p><p class="muted" style="max-width:300px">O nome é lido aqui no aparelho e a carta é identificada no Scryfall, em português ou inglês.</p><button class="bt ouro" data-s="camera">${ic("photo_camera")}Abrir a câmera</button></div>
           <p class="aviso">Encaixe a carta na moldura, com o nome na faixa roxa</p>
         </div>
@@ -155,9 +182,13 @@
         img.src = URL.createObjectURL(arq); e.target.value = "";
       });
       el.onclick = (e) => {
-        const b = e.target.closest("[data-s],[data-dest],[data-lote]"); if (!b) return;
+        const b = e.target.closest("[data-s],[data-dest],[data-lote],[data-deck],[data-troca],[data-rl],[data-desfazer]"); if (!b) return;
         if (b.dataset.dest) { destino = b.dataset.dest === "-" ? "-" : b.dataset.dest; if (atual) mostrar(el, atual); return; }
+        if (b.dataset.deck !== undefined) { deckAlvo = b.dataset.deck; if (atual) mostrar(el, atual); return; }
+        if (b.dataset.troca) { trocaAlvo = !trocaAlvo; if (atual) mostrar(el, atual); return; }
+        if (b.dataset.rl) { idiomaRes = b.dataset.rl; aplicarRes(el); return; }
         if (b.dataset.lote) return adicionar(el, lote[+b.dataset.lote].c, +b.dataset.lote);
+        if (b.dataset.desfazer) { const x = lote[+b.dataset.desfazer]; if (x && x.id) { SV.d.remover(x.id); x.id = null; desenharLote(el); toast(`${x.c.nome} saiu do cofre`, "undo"); if (atual === x.c) mostrar(el, x.c); } return; }
         const s = b.dataset.s;
         if (s === "camera") ligarCamera(el);
         else if (s === "capturar" || s === "visor") {
@@ -166,17 +197,19 @@
           else if (!img.hidden && img.naturalWidth) ler(el, img, img.naturalWidth, img.naturalHeight, false);
           else if (s === "capturar") ligarCamera(el);
         }
+        else if (s === "lote") { modoLote = !modoLote; b.classList.toggle("on", modoLote); b.setAttribute("aria-pressed", modoLote); toast(modoLote ? "Modo lote ligado: cada carta lida vai direto para o destino." : "Modo lote desligado: você confirma cada carta.", "photo_library"); }
         else if (s === "manual") manual(el);
         else if (s === "add" && atual) adicionar(el, atual);
-        else if (s === "mais" && atual) SV.folhaDestino(atual, { album: SV.d.album(destino) ? destino : "", foil: !!(($("#foil-s", el) || {}).checked), aoAdicionar: (c) => { const it = lote.find((x) => x.c === atual && !x.id); if (it) it.id = c.id; desenharLote(el); } });
+        else if (s === "compartilhar" && atual) SV.compartilhar(atual.nome, `${atual.nome} — ${atual.setNome} (${atual.set.toUpperCase()} #${atual.num})\n${atual.uri}`);
+        else if (s === "mais" && atual) SV.folhaDestino(atual, { album: SV.d.album(destino) ? destino : "", foil: !!(($("#foil-s", el) || {}).checked), troca: trocaAlvo, aoAdicionar: (c) => { const it = lote.find((x) => x.c === atual && !x.id); if (it) it.id = c.id; desenharLote(el); } });
         else if (s === "flash" && fluxo) { const t = fluxo.getVideoTracks()[0]; b.classList.toggle("on"); t.applyConstraints({ advanced: [{ torch: b.classList.contains("on") }] }).catch(() => {}); }
       };
       el.onsubmit = async (e) => {
         if (e.target.id !== "f-manual") return; e.preventDefault();
-        const q = $("#q-manual", el).value.trim(); if (!q) return;
+        const q = $("#q-manual", el).value.trim(); if (!q) { toast("Digite o nome da carta.", "search"); return; }
         $("#scan-status", el).innerHTML = `<span class="carregando"></span> Consultando o oráculo…`;
         const c = await SV.sf.identificar(q).catch(() => null);
-        if (c) { lote.unshift({ c, id: null }); desenharLote(el); $("#scan-status", el).textContent = ""; mostrar(el, c); } else $("#scan-status", el).innerHTML = `${ic("help")} Nenhuma carta com o nome “${esc(q)}”.`;
+        if (c) { lote.unshift({ c, id: null }); desenharLote(el); $("#scan-status", el).textContent = ""; mostrar(el, c); if (modoLote) adicionar(el, c); } else $("#scan-status", el).innerHTML = `${ic("help")} Nenhuma carta com o nome “${esc(q)}”.`;
       };
     },
     desmontar(el) { desligarCamera(); el.onclick = null; el.onsubmit = null; },

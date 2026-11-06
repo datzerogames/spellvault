@@ -8,7 +8,7 @@
   const TIPOS_CARTA = [["Creature", "Criatura"], ["Instant", "Instantâneo"], ["Sorcery", "Feitiço"], ["Artifact", "Artefato"], ["Enchantment", "Encantamento"], ["Land", "Terreno"], ["Planeswalker", "Planeswalker"]];
   const CONDICOES = [["NM", "Near Mint"], ["SP", "Slightly Played"], ["MP", "Moderately Played"], ["HP", "Heavily Played"], ["D", "Danificada"]];
   const IDIOMAS = ["EN", "PT", "ES", "JA", "DE", "FR", "IT"];
-  const filtro = { q: "", cor: "", tipo: "", foil: false, ordem: "recentes" };
+  const filtro = { q: "", cor: "", tipo: "", foil: false, troca: false, album: "", ordem: "recentes" };
 
   const nomeExibido = (c) => (SV.d.config().idioma === "pt" && c.pt && c.pt.nome ? c.pt.nome : c.nome);
   const corDe = (c) => (c.cores && c.cores.length > 1 ? "M" : c.cores && c.cores.length ? c.cores[0] : "C");
@@ -16,9 +16,14 @@
   function cartaMini(c, extra = "") {
     return `<a class="carta-mini" href="#carta-${c.id}" ${extra}>
       <div class="img">${c.img ? `<img src="${esc(c.img)}" alt="${esc(c.nome)}" loading="lazy"/>` : ic("style")}</div>
-      ${c.foil ? `<span class="selo-foil">Foil</span><span class="foil-brilho"></span>` : ""}
-      <div class="rodape"><b>${esc(nomeExibido(c))}</b><small><span class="raridade ${esc(c.raridade)}">${esc(SV.nomeRaridade[c.raridade] || "")}</span><span class="v">${SV.d.valorInfo(c).v ? brl(SV.d.valorInfo(c).v) : "—"}${SV.d.valorInfo(c).fonte === "liga" ? ' <i class="liga-tag">Liga</i>' : ""}</span></small></div>
+      ${c.foil ? `<span class="selo-foil">Foil</span><span class="foil-brilho"></span>` : ""}${c.troca ? `<span class="selo-cofre">Troca</span>` : ""}
+      <div class="rodape"><b>${esc(nomeExibido(c))}</b>${localDe(c)}<small><span class="raridade ${esc(c.raridade)}">${esc(SV.nomeRaridade[c.raridade] || "")}</span><span class="v">${SV.d.valorInfo(c).v ? brl(SV.d.valorInfo(c).v) : "—"}${SV.d.valorInfo(c).fonte === "liga" ? ' <i class="liga-tag">Liga</i>' : ""}</span></small></div>
     </a>`;
+  }
+
+  function localDe(c) {
+    const a = SV.d.album(c.album);
+    return `<span class="loc">${ic("pin_drop")}${a ? esc(a.nome) + " · " + (SV.d.ehCaixa(a) ? "#" : "slot ") + c.slot : "sem lugar"}</span>`;
   }
 
   // "Canto inferior direito da grade", "Linha do meio, à esquerda"…
@@ -35,7 +40,7 @@
   function filtrar() {
     const q = SV.d.cartas().filter((c) => {
       const t = (c.nome + " " + (c.pt ? c.pt.nome : "") + " " + c.setNome + " " + c.tipo).toLowerCase();
-      return (!filtro.q || t.includes(filtro.q.toLowerCase())) && (!filtro.cor || corDe(c) === filtro.cor) && (!filtro.tipo || c.tipo.includes(filtro.tipo)) && (!filtro.foil || c.foil);
+      return (!filtro.q || t.includes(filtro.q.toLowerCase())) && (!filtro.cor || corDe(c) === filtro.cor) && (!filtro.tipo || c.tipo.includes(filtro.tipo)) && (!filtro.foil || c.foil) && (!filtro.troca || c.troca) && (!filtro.album || (filtro.album === "-" ? !c.album : c.album === filtro.album));
     });
     const ord = { recentes: (a, b) => b.adicionada - a.adicionada, valor: (a, b) => SV.d.valor(b) - SV.d.valor(a), nome: (a, b) => nomeExibido(a).localeCompare(nomeExibido(b)), cmc: (a, b) => a.cmc - b.cmc }[filtro.ordem];
     return q.sort(ord);
@@ -53,14 +58,16 @@
     const total = todas.reduce((s, c) => s + SV.d.valor(c, cfg), 0);
     $("#corpo-col", el).innerHTML = `
       <div class="resumo"><div class="tomo"><b class="num">${todas.length}</b><span>cartas</span></div><div class="tomo"><b class="num">${brl(total).replace("R$ ", "")}</b><span>R$ estimado</span></div><div class="tomo"><b class="num">${todas.filter((c) => c.foil).length}</b><span>foils</span></div></div>
-      <label class="busca">${ic("search")}<input id="q-col" value="${esc(filtro.q)}" placeholder="Buscar no cofre (nome, edição, tipo)" autocomplete="off"/></label>
+      <label class="busca">${ic("search")}<input id="q-col" value="${esc(filtro.q)}" placeholder="Buscar no cofre (nome, edição, tipo)" autocomplete="off"/><button type="button" class="ico-bt" data-c="limpar-busca" aria-label="Limpar a busca" ${filtro.q ? "" : "hidden"}>${ic("close")}</button></label>
       <div class="chips mt" id="chips-cor"><button class="chip ${!filtro.cor ? "on" : ""}" data-cor="">Todas</button>${CORES.map(([k, n]) => `<button class="chip ${filtro.cor === k ? "on" : ""}" data-cor="${k}"><span class="pip ${k === "M" ? "X" : k}" style="width:14px;height:14px"></span>${n}</button>`).join("")}</div>
-      <div class="chips" id="chips-tipo"><button class="chip ${filtro.foil ? "on" : ""}" data-foil="1">${ic("auto_awesome")}Foil</button>${TIPOS_CARTA.map(([k, n]) => `<button class="chip ${filtro.tipo === k ? "on" : ""}" data-tipo="${k}">${n}</button>`).join("")}</div>
+      <div class="chips" id="chips-tipo"><button class="chip ${filtro.foil ? "on" : ""}" data-foil="1">${ic("auto_awesome")}Foil</button><button class="chip ${filtro.troca ? "on" : ""}" data-troca="1">${ic("swap_horiz")}Para troca</button>
+        <label class="chip ${filtro.album ? "on" : ""}" style="cursor:pointer">${ic("folder_special")}<select id="alb-col" aria-label="Filtrar por álbum" style="background:none;border:0;color:inherit;font:inherit;outline:0;max-width:150px"><option value="" style="background:#17110d">Todos os álbuns</option>${SV.d.albuns().map((a) => `<option value="${a.id}" ${filtro.album === a.id ? "selected" : ""} style="background:#17110d">${esc(a.nome)}</option>`).join("")}<option value="-" ${filtro.album === "-" ? "selected" : ""} style="background:#17110d">Sem lugar</option></select></label>${TIPOS_CARTA.map(([k, n]) => `<button class="chip ${filtro.tipo === k ? "on" : ""}" data-tipo="${k}">${n}</button>`).join("")}</div>
       <div class="fila mt"><span class="rot">${ic("style")}<span id="cont-col"></span></span><span class="espaco"></span>
         <label class="chip" style="cursor:pointer">${ic("sort")}<select id="ordem-col" style="background:none;border:0;color:inherit;font:inherit;outline:0">${[["recentes", "Recentes"], ["valor", "Mais valiosas"], ["nome", "Nome"], ["cmc", "Custo de mana"]].map(([v, t]) => `<option value="${v}" ${filtro.ordem === v ? "selected" : ""} style="background:#17110d">${t}</option>`).join("")}</select></label></div>
       <div id="lista-col" class="mt"></div>`;
     desenharLista(el);
-    $("#q-col", el).addEventListener("input", SV.debounce((e) => { filtro.q = e.target.value.trim(); desenharLista(el); }, 160));
+    $("#q-col", el).addEventListener("input", SV.debounce((e) => { filtro.q = e.target.value.trim(); const x = $("[data-c=limpar-busca]", el); if (x) x.hidden = !filtro.q; desenharLista(el); }, 160));
+    $("#alb-col", el).addEventListener("change", (e) => { filtro.album = e.target.value; e.target.closest("label").classList.toggle("on", !!filtro.album); desenharLista(el); });
     $("#ordem-col", el).addEventListener("change", (e) => { filtro.ordem = e.target.value; desenharLista(el); });
   }
   SV.telas.colecao = {
@@ -86,6 +93,8 @@
         else if (b.dataset.cor !== undefined) { filtro.cor = b.dataset.cor; $$("#chips-cor .chip", el).forEach((x) => x.classList.toggle("on", x === b)); desenharLista(el); }
         else if (b.dataset.tipo) { filtro.tipo = filtro.tipo === b.dataset.tipo ? "" : b.dataset.tipo; $$("#chips-tipo [data-tipo]", el).forEach((x) => x.classList.toggle("on", x.dataset.tipo === filtro.tipo)); desenharLista(el); }
         else if (b.dataset.foil) { filtro.foil = !filtro.foil; b.classList.toggle("on", filtro.foil); desenharLista(el); }
+        else if (b.dataset.troca) { filtro.troca = !filtro.troca; b.classList.toggle("on", filtro.troca); desenharLista(el); }
+        else if (b.dataset.c === "limpar-busca") { filtro.q = ""; const i = $("#q-col", el); i.value = ""; b.hidden = true; i.focus(); desenharLista(el); }
         else if (b.dataset.c === "adicionar") abrirAdicionar({ aoAdicionar: () => SV.telas.colecao.montar(el) });
       };
     },
@@ -165,7 +174,7 @@
     f.addEventListener("click", (e) => {
       const b = e.target.closest("[data-deck]");
       if (b) { SV.d.atualizar(c.id, { deck: b.dataset.deck }); toast(b.dataset.deck ? "Designada ao deck" : "Removida do deck", "swords"); fecharFolha(); depois && depois(); }
-      if (e.target.closest("#criar-deck")) { const nome = $("#novo-deck", f).value.trim(); if (!nome) return; const dk = { id: SV.d.uid(), nome, comandante: "" }; SV.d.salvarDecks(SV.d.decks().concat(dk)); SV.d.atualizar(c.id, { deck: dk.id }); toast(`Deck “${nome}” criado`, "swords"); fecharFolha(); depois && depois(); }
+      if (e.target.closest("#criar-deck")) { const nome = $("#novo-deck", f).value.trim(); if (!nome) { toast("Dê um nome ao deck.", "edit"); return; } const dk = { id: SV.d.uid(), nome, comandante: "" }; SV.d.salvarDecks(SV.d.decks().concat(dk)); SV.d.atualizar(c.id, { deck: dk.id }); toast(`Deck “${nome}” criado`, "swords"); fecharFolha(); depois && depois(); }
     });
   }
   function folhaEditar(c, depois) {
@@ -173,11 +182,12 @@
       <div class="campo mt"><label>Condição</label><div class="seg" id="seg-cond">${CONDICOES.map(([k]) => `<button data-cond="${k}" class="${c.condicao === k ? "on" : ""}">${k}</button>`).join("")}</div></div>
       <div class="campo mt"><label for="idi">Idioma da carta</label><select id="idi">${IDIOMAS.map((x) => `<option ${x === c.idioma ? "selected" : ""}>${x}</option>`).join("")}</select></div>
       <label class="check mt"><input type="checkbox" id="foil-e" ${c.foil ? "checked" : ""}/>Cópia foil</label>
+      <label class="check mt"><input type="checkbox" id="troca-e" ${c.troca ? "checked" : ""}/>Disponível para troca</label>
       <button class="bt ouro cheio mt2" id="ok-e">${ic("save")}Salvar</button>`);
     let cond = c.condicao;
     f.addEventListener("click", (e) => {
       const b = e.target.closest("[data-cond]"); if (b) { cond = b.dataset.cond; $$("#seg-cond button", f).forEach((x) => x.classList.toggle("on", x === b)); }
-      if (e.target.closest("#ok-e")) { SV.d.atualizar(c.id, { condicao: cond, idioma: $("#idi", f).value, foil: $("#foil-e", f).checked }); toast("Cópia atualizada", "save"); fecharFolha(); depois && depois(); }
+      if (e.target.closest("#ok-e")) { SV.d.atualizar(c.id, { condicao: cond, idioma: $("#idi", f).value, foil: $("#foil-e", f).checked, troca: $("#troca-e", f).checked }); toast("Cópia atualizada", "save"); fecharFolha(); depois && depois(); }
     });
   }
 
@@ -199,7 +209,7 @@
     };
     $("#q-add", f).addEventListener("input", (e) => sugerir(e.target.value.trim()));
     $("#f-busca", f).addEventListener("submit", async (e) => {
-      e.preventDefault(); clearTimeout(timer); const minha = ++vez; const q = $("#q-add", f).value.trim(); if (!q) return;
+      e.preventDefault(); clearTimeout(timer); const minha = ++vez; const q = $("#q-add", f).value.trim(); if (!q) { toast("Digite o nome da carta.", "search"); return; }
       res.innerHTML = `<p class="dim"><span class="carregando"></span> Consultando o oráculo…</p>`;
       const r = await SV.sf.multilingue(q).catch(() => []);
       if (minha !== vez) return;
@@ -222,6 +232,7 @@
       <div class="campo mt"><label>Condição</label><div class="seg" id="seg-cd">${CONDICOES.map(([k]) => `<button type="button" data-cond="${k}" class="${k === cond ? "on" : ""}">${k}</button>`).join("")}</div></div>
       <div class="dupla mt"><div class="campo"><label for="idi-d">Idioma</label><select id="idi-d">${IDIOMAS.map((x) => `<option>${x}</option>`).join("")}</select></div><div class="campo"><label for="deck-d">Deck</label><select id="deck-d"><option value="">Nenhum</option>${SV.d.decks().map((dk) => `<option value="${dk.id}">${esc(dk.nome)}</option>`).join("")}</select></div></div>
       ${dadosSf.foilPossivel ? `<label class="check mt"><input type="checkbox" id="foil-d" ${opts.foil ? "checked" : ""}/>Cópia foil</label>` : ""}
+      <label class="check mt"><input type="checkbox" id="troca-d" ${opts.troca ? "checked" : ""}/>Disponível para troca</label>
       <div class="campo mt"><label for="alb-d">Guardar em</label><select id="alb-d">${opcoesAlbum(alb)}</select><small id="slot-d"></small></div>
       <button class="bt ouro cheio mt2" id="ok-d">${ic("bookmark_add")}Adicionar à coleção</button>`);
     const dica = () => { const a = SV.d.album(alb); $("#slot-d", f).textContent = a ? (opts.album === alb && opts.slot ? `Vai para o slot ${opts.slot}.` : `Vai para o próximo slot livre: ${SV.d.proximoLivre(a.id) || "álbum cheio"}.`) : "Fica só na coleção, sem lugar físico."; };
@@ -233,7 +244,7 @@
         const a = SV.d.album(alb);
         const slot = a ? (opts.album === alb && opts.slot ? opts.slot : SV.d.proximoLivre(a.id)) : 0;
         if (a && !slot) { toast("Esse álbum está cheio. Escolha outro.", "warning"); return; }
-        const c = SV.d.adicionar(dadosSf, { condicao: cond, idioma: $("#idi-d", f).value, deck: $("#deck-d", f).value, foil: !!($("#foil-d", f) || {}).checked, album: a ? a.id : "", slot });
+        const c = SV.d.adicionar(dadosSf, { condicao: cond, idioma: $("#idi-d", f).value, deck: $("#deck-d", f).value, foil: !!($("#foil-d", f) || {}).checked, troca: $("#troca-d", f).checked, album: a ? a.id : "", slot });
         toast(a ? `${c.nome} guardada: ${a.nome}, slot ${slot}` : `${c.nome} adicionada`, "bookmark_added");
         fecharFolha(); opts.aoAdicionar && opts.aoAdicionar(c);
       }

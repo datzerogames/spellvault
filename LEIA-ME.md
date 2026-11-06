@@ -8,12 +8,28 @@ O SpellVault é o app das telas do Stitch (`stitch_magic_binder_companion`), fun
 
 | Aba | O que faz |
 |---|---|
-| **Vida** | Marcador de Commander para 2 a 6 jogadores: dano de comandante, veneno, taxa, energia, monarca, dados, cronômetro e crônica. |
-| **Scanner** | Lê o nome da carta pela câmera ou por foto e identifica em português ou inglês. Mostra o preço, mostra quantas cópias você já tem, deixa guardar no álbum e leva para a ficha completa. |
+| **Vida** | Marcador de Commander para 2 a 6 jogadores. Veja "Aba Vida" abaixo. |
+| **Scanner** | Lê o nome da carta pela câmera ou por foto e identifica em português ou inglês. Mostra o preço, mostra quantas cópias você já tem, deixa guardar no álbum, num deck ou como "para troca" e leva para a ficha completa. **Modo lote:** o botão "Lote" no visor faz cada carta lida ir direto para o destino (dá para desfazer pela lista da sessão). Também tem PT-BR/EN no texto da carta e botão de compartilhar. |
 | **Consulta** | A busca de cartas, no estilo da LigaMagic. Veja abaixo. |
-| **Coleção** | Seu cofre (busca, filtros, valor em R$) e a lista de desejos. |
-| **Álbuns** | Fichários, pastas, deck boxes e gaveteiros, com páginas e slots. |
-| **Grimório** | Perfil, números do cofre, decks, ajustes e cópia de segurança. |
+| **Coleção** | Seu cofre (busca com botão de limpar, filtros por cor, tipo, foil, "para troca" e álbum, valor em R$, e onde cada carta está guardada) e a lista de desejos. |
+| **Álbuns** | Fichários, pastas, deck boxes e gaveteiros, com páginas e slots. O filtro **Livres (N)** mostra só o que tem espaço, o menu ⋮ tem as opções do fichário (editar, destino padrão do scanner, copiar a lista, retirar todas as cartas, remover) e cada carta tem o botão **Mover**. |
+| **Grimório** | Perfil, usuário da LigaMagic, números do cofre, decks, ajustes e cópia de segurança. |
+
+O dado **D20** e o botão de **perfil** do cabeçalho aparecem em todas as telas.
+
+## Aba Vida
+
+- **Mudar a vida:** toque na metade de cima ou de baixo do painel, ou use −5, −1, +1 e +5.
+- **Marcadores** (toque no nome do jogador): veneno, taxa de comandante, energia, experiência, dano de comandante recebido de cada oponente e a tribo do comandante. Quem chega a 21 de um mesmo comandante, a 10 de veneno ou a 0 de vida cai.
+- **Barra de ferramentas da mesa:**
+  - **Monarca:** escolhe quem tem a coroa (também há uma coroa em cada painel).
+  - **Mana:** Mana Pool de cada jogador, por cor, mais o contador de Tempestade (storm).
+  - **Scryfall:** procura o comandante, mostra os mais jogados e consagra o escolhido num jogador, com a arte como fundo.
+  - **Comandantes:** o "trono" com o general de cada posto, com regras, troca e remoção.
+  - **Crônicas:** o histórico da partida.
+  - **Combo!:** registra um combo infinito nas crônicas e abre o oráculo do comandante.
+- **Em cada painel:** o livro abre as regras oficiais do comandante, com o imposto e as decisões (rulings), e a paleta muda o fundo (cor de mana ou arte de uma carta, com filtro de planeswalkers, comandantes e lendárias, e a opção de remover a arte).
+- Também tem dados (D4 a D20, moeda e "quem começa"), cronômetro e nova partida de 2 a 6 jogadores.
 
 ## Consulta de cartas
 
@@ -43,6 +59,7 @@ A LigaMagic **não tem API aberta**, o `robots.txt` dela pede no máximo um aces
 
 - **Atalhos:** botões que abrem a carta, a busca, a Compra por Lista, as Edições, Cards em alta, Cards em queda e a Reserved List direto no site da Liga.
 - **Cotação informada por você:** na ficha da carta, toque em "Informar cotação", copie da Liga o menor, o médio e o maior valor e guarde (normal e foil separados, com a data). Essa cotação passa a valer no valor da carta, no total da coleção e na lista de desejos, com a etiqueta "Liga". Fica só no seu aparelho. Nos ajustes dá para desligar o uso dela ou apagar todas.
+- **Login:** a Liga só aceita login (usuário e senha) no site dela e não oferece "entrar com a Liga" para outros apps. Por isso o Grimório tem os botões "Entrar na Liga" e "Criar conta na Liga", que abrem o site dela, e guarda só o seu **usuário** para os atalhos (sem verificar). O SpellVault nunca pede nem guarda a sua senha da Liga.
 - **Lista de desejos:** monte a lista de compras e use "Copiar lista" para colar na Compra por Lista da Liga. A mesma cópia existe para o cofre inteiro, no Grimório.
 
 Se a LigaMagic autorizar o uso (parceria ou API), dá para ligar a cotação automática.

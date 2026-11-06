@@ -3,6 +3,7 @@
   const SV = (window.SV = window.SV || {});
   const { $, $$, esc, ic, toast, folha, fecharFolha, confirmar } = SV;
   const paginaAtual = {};
+  const soLivres = {}; // álbum → mostrar só o que está livre
 
   function livro(a) {
     const cap = SV.d.capacidade(a), oc = Object.keys(SV.d.ocupacao(a.id)).length, pct = Math.round((oc / cap) * 100);
@@ -39,30 +40,43 @@
       let pag = Math.min(nPag, paginaAtual[id] || 1);
       const prox = SV.d.proximoLivre(a.id);
       const t = SV.d.TIPOS[a.tipo];
+      const livresN = cap - usados, filtroLivres = !!soLivres[id] && livresN > 0;
+      const livresNaPagina = (n) => Array.from({ length: pp }, (_, k) => (n - 1) * pp + k + 1).filter((s) => !oc[s]).length;
+      const paginasLivres = caixa ? [] : Array.from({ length: nPag }, (_, i) => i + 1).filter((n) => livresNaPagina(n) > 0);
+      if (filtroLivres && !caixa && paginasLivres.length && !paginasLivres.includes(pag)) pag = paginasLivres.find((n) => n > pag) || paginasLivres[0];
       el.innerHTML = `<div class="pagina">
         <header class="topo"><a class="ico-bt" href="#albuns" aria-label="Voltar">${ic("arrow_back")}</a><div class="marca"><b style="font-size:19px">${esc(a.nome)}</b><small>${esc(t.nome)}</small></div>
-          <div class="acoes"><button class="ico-bt" data-a="editar" aria-label="Editar álbum">${ic("edit")}</button></div></header>
+          <div class="acoes"><button class="ico-bt" data-a="editar" aria-label="Editar álbum">${ic("edit")}</button><button class="ico-bt" data-a="opcoes" aria-label="Opções do fichário">${ic("more_vert")}</button></div></header>
         <section class="tomo cantos pad">
           <p class="rot">${ic("folder_special")}Fichário arcano${SV.d.config().albumPadrao === a.id ? " · padrão" : ""}</p>
           <h2 style="font:600 24px var(--fc);margin-top:6px">${esc(a.nome)}${a.nota ? ` · <span class="muted">${esc(a.nota)}</span>` : ""}</h2>
           <p class="muted">${esc(a.sleeve || "")}</p>
           <div class="fila mt"><span class="rot">${usados}/${cap} slots ocupados</span><span class="espaco"></span><span class="rot ouro">${pct}% cheio</span></div>
           <div class="barra"><i style="width:${pct}%"></i></div>
+          <div class="fila mt"><button class="chip ${filtroLivres ? "on" : ""}" data-a="livres" aria-pressed="${filtroLivres}" ${livresN ? "" : "disabled"}>${ic("filter_list")}Livres (${livresN})</button>${filtroLivres ? `<span class="dim" style="font-size:14px">${caixa ? "mostrando só as posições livres" : `${paginasLivres.length} página(s) com espaço`}</span>` : ""}</div>
         </section>
-        ${caixa ? `<ul class="lista-caixa tomo pad mt">${Object.keys(oc).map(Number).sort((x, y) => x - y).map((s) => { const c = oc[s]; return `<li><span class="pos">#${s}</span>${c.imgPeq ? `<img src="${esc(c.imgPeq)}" alt=""/>` : ""}<a href="#carta-${c.id}" style="flex:1;min-width:0"><b style="font:600 16px var(--fc)">${esc(SV.nomeExibido(c))}</b><br/><small class="dim">${esc(c.setNome)} · ${esc(c.condicao)}${c.foil ? " · Foil" : ""}</small></a></li>`; }).join("") || `<li class="dim">Caixa vazia.</li>`}</ul>`
-        : `<div class="paginador"><button class="ico-bt" data-a="ant" aria-label="Página anterior" ${pag <= 1 ? "disabled" : ""}>${ic("chevron_left")}</button>
+        ${caixa && filtroLivres ? `<section class="tomo pad mt"><p class="rot">${ic("filter_list")}Posições livres</p><div class="chips quebra mt">${Array.from({ length: cap }, (_, k) => k + 1).filter((s) => !oc[s]).slice(0, 60).map((s) => `<button class="chip" data-slot="${s}">#${s}</button>`).join("")}</div><p class="dim mt" style="font-size:14px">Toque numa posição para guardar uma carta nela.</p></section>`
+        : caixa ? `<ul class="lista-caixa tomo pad mt">${Object.keys(oc).map(Number).sort((x, y) => x - y).map((s) => { const c = oc[s]; return `<li><span class="pos">#${s}</span>${c.imgPeq ? `<img src="${esc(c.imgPeq)}" alt=""/>` : ""}<a href="#carta-${c.id}" style="flex:1;min-width:0"><b style="font:600 16px var(--fc)">${esc(SV.nomeExibido(c))}</b><br/><small class="dim">${esc(c.setNome)} · ${esc(c.condicao)}${c.foil ? " · Foil" : ""}</small></a></li>`; }).join("") || `<li class="dim">Caixa vazia.</li>`}</ul>`
+        : `<div class="paginador"><button class="ico-bt" data-a="ant" aria-label="Página anterior" ${(filtroLivres ? !paginasLivres.some((n) => n < pag) : pag <= 1) ? "disabled" : ""}>${ic("chevron_left")}</button>
             <div class="info"><b>${ic("layers")} Página ${pag} de ${nPag}</b><small>Slots #${(pag - 1) * pp + 1} — #${pag * pp}</small></div>
-            <button class="ico-bt" data-a="prox" aria-label="Próxima página" ${pag >= nPag ? "disabled" : ""}>${ic("chevron_right")}</button></div>
-          <div class="folha-album" style="grid-template-columns:repeat(${t.cols},minmax(0,1fr))">${Array.from({ length: pp }, (_, i) => { const s = (pag - 1) * pp + i + 1, c = oc[s]; return c ? `<a class="slot cheio" href="#carta-${c.id}"><span class="n">#${s}</span>${c.img ? `<img src="${esc(c.img)}" alt="${esc(c.nome)}" loading="lazy"/>` : ""}${c.foil ? `<span class="selo-foil">Foil</span><span class="foil-brilho"></span>` : ""}<span class="legenda">${esc(SV.nomeExibido(c))}<small>${esc(SV.nomeRaridade[c.raridade] || "")} · ${esc(c.condicao)}</small></span></a>` : `<button class="slot" data-slot="${s}" aria-label="Slot ${s} vazio, adicionar carta"><span class="n">#${s}</span><span class="vazio-slot">${ic("add_circle")}Vazio</span></button>`; }).join("")}</div>
-          <div class="chips mt" aria-label="Ir para página">${Array.from({ length: nPag }, (_, i) => { const ini = i * pp + 1, cheios = Array.from({ length: pp }, (_, k) => oc[ini + k]).filter(Boolean).length; return `<button class="chip ${i + 1 === pag ? "on" : ""}" data-pag="${i + 1}">${i + 1}<span class="n">${cheios}/${pp}</span></button>`; }).join("")}</div>`}
+            <button class="ico-bt" data-a="prox" aria-label="Próxima página" ${(filtroLivres ? !paginasLivres.some((n) => n > pag) : pag >= nPag) ? "disabled" : ""}>${ic("chevron_right")}</button></div>
+          <div class="folha-album" style="grid-template-columns:repeat(${t.cols},minmax(0,1fr))">${Array.from({ length: pp }, (_, i) => { const s = (pag - 1) * pp + i + 1, c = oc[s]; return c ? `<div class="slot-wrap ${filtroLivres ? "apagado" : ""}"><button class="slot-mover" data-mover="${c.id}" aria-label="Mover ${esc(SV.nomeExibido(c))} para outro slot">${ic("swap_horiz")}</button><a class="slot cheio" href="#carta-${c.id}"><span class="n">#${s}</span>${c.img ? `<img src="${esc(c.img)}" alt="${esc(c.nome)}" loading="lazy"/>` : ""}${c.foil ? `<span class="selo-foil">Foil</span><span class="foil-brilho"></span>` : ""}<span class="legenda">${esc(SV.nomeExibido(c))}<small>${esc(SV.nomeRaridade[c.raridade] || "")} · ${esc(c.condicao)}</small></span></a></div>` : `<button class="slot ${filtroLivres ? "livre-realce" : ""}" data-slot="${s}" aria-label="Slot ${s} vazio, adicionar carta"><span class="n">#${s}</span><span class="vazio-slot">${ic("add_circle")}Vazio</span></button>`; }).join("")}</div>
+          <div class="chips mt" aria-label="Ir para página">${Array.from({ length: nPag }, (_, i) => i).filter((i) => !filtroLivres || paginasLivres.includes(i + 1)).map((i) => { const ini = i * pp + 1, cheios = Array.from({ length: pp }, (_, k) => oc[ini + k]).filter(Boolean).length; return `<button class="chip ${i + 1 === pag ? "on" : ""}" data-pag="${i + 1}">${i + 1}<span class="n">${cheios}/${pp}</span></button>`; }).join("")}</div>`}
         <div class="fila mt2"><a class="bt ouro" style="flex:1" href="#scanner" data-a="escanear" ${prox ? "" : "aria-disabled=true"}>${ic("document_scanner")}${prox ? `Escanear p/ slot #${prox}` : "Álbum cheio"}</a><button class="ico-bt" data-a="adicionar" aria-label="Adicionar carta pelo nome" style="width:52px;height:52px">${ic("add")}</button></div>
       </div>`;
       el.onclick = async (e) => {
-        const b = e.target.closest("[data-a],[data-slot],[data-pag]"); if (!b) return;
+        const b = e.target.closest("[data-a],[data-slot],[data-pag],[data-mover]"); if (!b) return;
+        if (b.dataset.mover) { const c = SV.d.carta(b.dataset.mover); return c && SV.folhaMover(c, () => SV.telas.album.montar(el, id)); }
         if (b.dataset.slot) return SV.abrirAdicionar({ album: a.id, slot: +b.dataset.slot, aoAdicionar: () => SV.telas.album.montar(el, id) });
         if (b.dataset.pag) { paginaAtual[id] = +b.dataset.pag; return SV.telas.album.montar(el, id); }
         const acao = b.dataset.a;
-        if (acao === "ant" || acao === "prox") { paginaAtual[id] = pag + (acao === "prox" ? 1 : -1); SV.telas.album.montar(el, id); }
+        if (acao === "ant" || acao === "prox") {
+          const dir = acao === "prox" ? 1 : -1;
+          paginaAtual[id] = filtroLivres ? (dir > 0 ? paginasLivres.find((n) => n > pag) : [...paginasLivres].reverse().find((n) => n < pag)) || pag : pag + dir;
+          SV.telas.album.montar(el, id);
+        }
+        else if (acao === "livres") { soLivres[id] = !soLivres[id]; SV.telas.album.montar(el, id); }
+        else if (acao === "opcoes") folhaOpcoes(a, el, id);
         else if (acao === "adicionar") SV.abrirAdicionar({ album: a.id, slot: prox, aoAdicionar: () => SV.telas.album.montar(el, id) });
         else if (acao === "escanear") { SV.destinoScanner = { album: a.id }; }
         else if (acao === "editar") folhaAlbum(a, () => SV.telas.album.montar(el, id));
@@ -70,6 +84,37 @@
     },
     desmontar(el) { el.onclick = null; },
   };
+
+  function folhaOpcoes(a, el, id) {
+    const padrao = SV.d.config().albumPadrao === a.id, n = Object.keys(SV.d.ocupacao(a.id)).length;
+    const f = folha(`<h2>${esc(a.nome)}</h2><p class="muted">Opções do fichário</p>
+      <div class="res-busca mt" style="max-height:none">
+        <button data-o="editar">${ic("edit")}<div><b>Editar álbum</b><small>Nome, tipo, páginas, capa e proteção</small></div></button>
+        <button data-o="padrao">${ic(padrao ? "check_circle" : "radio_button_unchecked", padrao ? "fill" : "")}<div><b>${padrao ? "É o destino padrão do scanner" : "Usar como destino padrão do scanner"}</b><small>${padrao ? "Toque para deixar sem padrão" : "As cartas escaneadas vêm para cá"}</small></div></button>
+        <button data-o="copiar" ${n ? "" : "disabled"}>${ic("content_copy")}<div><b>Copiar a lista do álbum</b><small>Um slot por linha, com o nome da carta</small></div></button>
+        <button data-o="esvaziar" ${n ? "" : "disabled"}>${ic("inventory")}<div><b>Retirar todas as cartas</b><small>Elas continuam na coleção, sem lugar físico</small></div></button>
+        <button data-o="remover">${ic("delete")}<div><b>Remover álbum</b><small>As cartas continuam na coleção</small></div></button>
+      </div>`);
+    f.addEventListener("click", async (e) => {
+      const b = e.target.closest("[data-o]"); if (!b) return;
+      const o = b.dataset.o;
+      if (o === "editar") { fecharFolha(); folhaAlbum(a, () => SV.telas.album.montar(el, id)); }
+      else if (o === "padrao") { SV.d.salvarConfig({ albumPadrao: padrao ? "" : a.id }); toast(padrao ? "Scanner sem álbum padrão" : "Álbum padrão do scanner definido", "collections_bookmark"); fecharFolha(); SV.telas.album.montar(el, id); }
+      else if (o === "copiar") {
+        const oc = SV.d.ocupacao(a.id);
+        await SV.copiar(Object.keys(oc).map(Number).sort((x, y) => x - y).map((s) => `#${s} ${oc[s].nome}${oc[s].foil ? " (foil)" : ""} — ${oc[s].setNome}`).join("\n"));
+        fecharFolha();
+      }
+      else if (o === "esvaziar") {
+        fecharFolha();
+        if (await confirmar("Retirar todas as cartas?", `As ${n} cartas de ${a.nome} ficam sem lugar físico, mas continuam na coleção.`, "Retirar")) { SV.d.salvarCartas(SV.d.cartas().map((c) => (c.album === a.id ? Object.assign(c, { album: "", slot: 0 }) : c))); toast("Álbum esvaziado", "inventory"); SV.telas.album.montar(el, id); }
+      }
+      else if (o === "remover") {
+        fecharFolha();
+        if (await confirmar("Remover este álbum?", n ? `As ${n} cartas continuam na coleção, mas ficam sem lugar físico.` : "O álbum está vazio.", "Remover")) { SV.d.removerAlbum(a.id); toast("Álbum removido", "delete"); location.hash = "#albuns"; }
+      }
+    });
+  }
 
   function folhaAlbum(a, depois) {
     const novo = !a;

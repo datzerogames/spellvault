@@ -4,7 +4,7 @@ Companheiro de Magic: The Gathering com visual medieval dark fantasy.
 
 **Abrir o app:** https://datzerogames.github.io/spellvault/
 
-- **Vida:** marcador para Commander (2 a 6 jogadores), dano de comandante, veneno, taxa, dados e crônica da partida.
+- **Vida:** marcador para Commander (2 a 6 jogadores), dano de comandante, veneno, taxa, dados e crônica da partida, com Mana Pool, monarca, busca de comandante no Scryfall, trono dos comandantes, regras oficiais e o aviso de Combo!.
 - **Scanner:** lê o nome da carta pela câmera ou por foto e identifica no Scryfall, em português ou inglês.
 - **Coleção:** busca, filtros, valor estimado em R$ e a carta em 3D, com o lugar exato onde ela está guardada.
 - **Álbuns:** fichários, pastas, deck boxes e gaveteiros, com páginas e slots.

@@ -149,7 +149,7 @@
         <div style="display:grid;gap:14px;min-width:0">
           <div class="nome-carta"><div class="fila"><span class="raridade ${esc(b.raridade)}">${esc(SV.nomeRaridade[b.raridade] || b.raridade)}</span>${foil ? `<span class="etiqueta ouro">Foil</span>` : ""}<span class="espaco"></span>${mana(b.custo)}</div>
             <h1 id="nome-c">${esc(nome)}</h1><p class="en" id="nome-en">${e && e.imp ? esc(b.nome) : ""}</p></div>
-          <div class="etiquetas"><span class="etiqueta">${esc(b.set.toUpperCase())} #${esc(b.num)}</span><span class="etiqueta">${esc(b.setNome)}</span>${c ? `<span class="etiqueta">${esc(cond)} (${esc(c.condicao)})</span><span class="etiqueta">${esc(c.idioma)}</span>` : ""}${deck ? `<span class="etiqueta ouro">${ic("swords")} ${esc(deck.nome)}</span>` : ""}${S.f && S.f.reservada ? `<span class="etiqueta ouro">${ic("lock")} Reserved List</span>` : ""}</div>
+          <div class="etiquetas"><span class="etiqueta">${esc(b.set.toUpperCase())} #${esc(b.num)}</span><span class="etiqueta">${esc(b.setNome)}</span>${c ? `<span class="etiqueta">${esc(cond)} (${esc(c.condicao)})</span><span class="etiqueta">${esc(c.idioma)}</span>` : ""}${deck ? `<span class="etiqueta ouro">${ic("swords")} ${esc(deck.nome)}</span>` : ""}${c && c.troca ? `<span class="etiqueta ouro">${ic("swap_horiz")} Para troca</span>` : ""}${S.f && S.f.reservada ? `<span class="etiqueta ouro">${ic("lock")} Reserved List</span>` : ""}</div>
           <div id="regras-wrap" style="display:grid;gap:10px">${regrasHtml(S)}</div>
           ${S.f && S.f.palavras.length ? `<div class="etiquetas">${S.f.palavras.map((p) => `<span class="etiqueta">${esc(p)}</span>`).join("")}</div>` : ""}
           <div id="precos-wrap">${precosHtml(S)}</div>
@@ -209,7 +209,7 @@
       const b = ev.target.closest("[data-dt],[data-liga]"); if (!b) return;
       if (b.dataset.liga === "cotacao") return SV.liga.folhaCotacao(bAtual(S), () => { $("#liga-wrap", el).innerHTML = SV.liga.bloco(bAtual(S)); $("#precos-wrap", el).innerHTML = precosHtml(S); if (S.abertas.edicoes) atualizarGaveta(el, S, "edicoes"); }, !!(S.copia && S.copia.foil));
       const acao = b.dataset.dt, c = S.copia, base = bAtual(S);
-      if (acao === "voltar") history.length > 1 ? history.back() : (location.hash = c ? "#colecao" : "#consulta");
+      if (acao === "voltar") (SV.navegou > 0 ? history.back() : (location.hash = c ? "#colecao" : "#consulta")); // só volta no histórico se ele é do próprio app
       else if (acao === "virar") { const x = $("#c3d", el); S.virada = !S.virada; x.dataset.virada = S.virada ? "1" : "0"; x.style.transform = `rotateY(${S.virada ? 180 : 0}deg)`; }
       else if (acao === "lang") { S.lang = b.dataset.l; aplicarIdioma(el, S); }
       else if (acao === "compartilhar") SV.copiar(`${base.nome} — ${base.setNome} (${base.set.toUpperCase()} #${base.num})`);
