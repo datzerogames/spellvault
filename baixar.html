@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Baixar o SpellVault</title>
+<meta name="description" content="Baixe o SpellVault para Android: marcador de vida de Commander, scanner de cartas, coleção e álbuns." />
+<meta name="theme-color" content="#0a0806" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0806'/%3E%3Cpath d='M16 4l3 7 7 1-5 5 1 8-6-4-6 4 1-8-5-5 7-1z' fill='none' stroke='%23ebcf86' stroke-width='1.6'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cinzel+Decorative:wght@700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root { color-scheme: dark; --noite: #0a0806; --couro: #2a1f16; --ouro: #c9a24a; --ouro2: #ebcf86; --perg: #eadfc6; --tinta: #b8a888; --brasa: #e2722f; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { min-height: 100dvh; background: radial-gradient(70% 45% at 85% -5%, rgba(226, 114, 47, 0.18), transparent 70%), radial-gradient(90% 60% at 50% 115%, rgba(201, 162, 74, 0.14), transparent 70%), linear-gradient(180deg, #120d09, var(--noite) 45%, #070504); color: var(--perg); font: 400 18px/1.5 "EB Garamond", Georgia, serif; padding: calc(28px + env(safe-area-inset-top, 0px)) 18px calc(40px + env(safe-area-inset-bottom, 0px)); -webkit-font-smoothing: antialiased; }
+  main { width: min(560px, 100%); margin: 0 auto; display: grid; gap: 18px; }
+  .selo { width: 84px; height: 84px; border-radius: 50%; margin: 0 auto; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #5a3b1f, #241509 70%); border: 1px solid #8a6a2c; box-shadow: inset 0 0 0 4px rgba(0, 0, 0, 0.45), 0 0 30px rgba(226, 114, 47, 0.3); }
+  .selo svg { width: 46px; height: 46px; }
+  h1 { font: 700 38px/1.1 "Cinzel Decorative", "Cinzel", Georgia, serif; text-align: center; color: var(--ouro2); text-shadow: 0 0 24px rgba(235, 207, 134, 0.25); }
+  .sub { text-align: center; color: var(--tinta); font-style: italic; margin-top: -8px; }
+  .tomo { position: relative; border-radius: 16px; padding: 20px; background: linear-gradient(180deg, rgba(48, 35, 25, 0.9), rgba(22, 17, 13, 0.94)); border: 1px solid rgba(201, 162, 74, 0.36); box-shadow: inset 0 1px 0 rgba(255, 230, 170, 0.08), 0 14px 34px rgba(0, 0, 0, 0.6); }
+  .botao { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 58px; padding: 0 20px; border-radius: 14px; text-decoration: none; font: 700 15px "Cinzel", Georgia, serif; letter-spacing: 0.1em; text-transform: uppercase; color: #1b1206; background: linear-gradient(180deg, #f0d68f, #c9a24a 55%, #94722f); border: 1px solid #f0d68f; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 8px 22px rgba(201, 162, 74, 0.28); }
+  .botao.sec { color: var(--perg); background: linear-gradient(180deg, #2c2219, #1a140f); border-color: rgba(201, 162, 74, 0.4); box-shadow: none; }
+  .botao small { display: block; font: 500 12px "EB Garamond", serif; letter-spacing: 0; text-transform: none; opacity: 0.75; }
+  h2 { font: 700 13px "Cinzel", Georgia, serif; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ouro2); margin-bottom: 12px; }
+  ol { list-style: none; counter-reset: p; display: grid; gap: 12px; }
+  ol li { counter-increment: p; display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
+  ol li::before { content: counter(p); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; font: 700 15px "Cinzel", serif; color: #1b1206; background: linear-gradient(180deg, #f0d68f, #b88f3a); }
+  .nota { font-size: 16px; color: var(--tinta); }
+  .nota b { color: var(--perg); font-weight: 500; }
+  a { color: var(--ouro2); }
+  .fim { text-align: center; font-size: 14px; color: #7f735e; font-style: italic; }
+</style>
+</head>
+<body>
+<main>
+  <div class="selo"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4l3 7 7 1-5 5 1 8-6-4-6 4 1-8-5-5 7-1z" fill="none" stroke="#ebcf86" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+  <h1>SpellVault</h1>
+  <p class="sub">Grimório do planeswalker · app para Android</p>
+
+  <a class="botao" id="baixar" href="https://github.com/datzerogames/spellvault/releases/latest/download/SpellVault.apk" download>
+    <span>Baixar o app<small>SpellVault.apk · cerca de 6 MB</small></span>
+  </a>
+
+  <section class="tomo">
+    <h2>Como instalar</h2>
+    <ol>
+      <li><span>Toque em <b>Baixar o app</b>. Se o navegador avisar que “este tipo de arquivo pode danificar o aparelho”, toque em <b>Baixar mesmo assim</b>.</span></li>
+      <li><span>Abra o arquivo baixado. Na primeira vez, o Android pede para <b>permitir a instalação de apps desta fonte</b>: ative e volte.</span></li>
+      <li><span>Toque em <b>Instalar</b> e depois em <b>Abrir</b>. Ao usar o scanner, permita o acesso à câmera.</span></li>
+    </ol>
+  </section>
+
+  <section class="tomo">
+    <h2>Bom saber</h2>
+    <p class="nota">O app não está na Play Store, por isso o Android faz esses avisos. O arquivo é este mesmo, publicado no <a href="https://github.com/datzerogames/spellvault/releases">GitHub</a>. A coleção, os álbuns e as partidas ficam salvos <b>só no seu celular</b>: use <b>Grimório › Exportar</b> para guardar uma cópia de segurança. Precisa de internet para buscar cartas e imagens.</p>
+  </section>
+
+  <a class="botao sec" href="./">Prefere usar sem instalar? Abrir no navegador</a>
+  <p class="fim">Projeto de fã, sem afiliação com a Wizards of the Coast. Cartas e preços: Scryfall.</p>
+</main>
+</body>
+</html>

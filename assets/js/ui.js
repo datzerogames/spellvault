@@ -50,13 +50,30 @@
     try { await navigator.clipboard.writeText(txt); toast("Copiado", "content_copy"); }
     catch { const i = document.createElement("textarea"); i.value = txt; document.body.appendChild(i); i.select(); try { document.execCommand("copy"); toast("Copiado", "content_copy"); } catch {} i.remove(); }
   }
+  // dentro do app Android (Capacitor) existem plugins nativos de arquivo e de compartilhar
+  const nativo = () => !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  const plugins = () => (window.Capacitor && window.Capacitor.Plugins) || {};
+  // o WebView do Android não baixa arquivos: grava o backup num arquivo temporário e abre o menu de compartilhar
+  // (Drive, WhatsApp, e-mail, "Salvar em arquivos"). Devolve true se tratou o pedido.
+  async function exportarNativo(nome, texto) {
+    const P = plugins(); if (!nativo() || !P.Filesystem || !P.Share) return false;
+    try {
+      const r = await P.Filesystem.writeFile({ path: nome, data: texto, directory: "CACHE", encoding: "utf8" });
+      await P.Share.share({ title: "Backup do SpellVault", text: "Backup do SpellVault", url: r.uri, dialogTitle: "Guardar o backup" });
+      toast("Backup pronto: escolha onde guardar", "download");
+    } catch (e) { if (!/cancel/i.test(String(e && e.message))) toast("Não consegui exportar o backup.", "error"); }
+    return true;
+  }
+
   // compartilhar pelo menu nativo do celular; onde não existir, copia o texto
   async function compartilhar(titulo, texto) {
+    const P = plugins();
+    if (nativo() && P.Share) { try { await P.Share.share({ title: titulo, text: texto, dialogTitle: "Compartilhar" }); } catch { /* cancelado */ } return; }
     if (navigator.share) { try { await navigator.share({ title: titulo, text: texto }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
     return copiar(texto);
   }
   const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
   const nomeRaridade = { common: "Comum", uncommon: "Incomum", rare: "Rara", mythic: "Mítica", special: "Especial", bonus: "Bônus" };
 
-  Object.assign(SV, { $, $$, esc, ic, brl, num2, dataBr, mana, toast, folha, fecharFolha, confirmar, copiar, compartilhar, debounce, nomeRaridade });
+  Object.assign(SV, { $, $$, esc, ic, brl, num2, dataBr, mana, toast, folha, fecharFolha, confirmar, copiar, compartilhar, exportarNativo, nativo, debounce, nomeRaridade });
 })();

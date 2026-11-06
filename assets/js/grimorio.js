@@ -86,7 +86,7 @@
           await SV.copiar(SV.liga.textoLista(l)); toast(`${l.length} cartas diferentes copiadas`, "content_copy");
         }
         else if (g === "limpar-liga") { if (await confirmar("Apagar as cotações da Liga?", "As cotações que você digitou são apagadas e o valor volta a usar o Scryfall.", "Apagar")) { SV.d.LS.del("liga"); toast("Cotações apagadas", "delete"); SV.telas.grimorio.montar(el); } }
-        else if (g === "exportar") { const blob = new Blob([SV.d.exportar()], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `spellvault-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast("Cópia de segurança baixada", "download"); }
+        else if (g === "exportar") { if (await SV.exportarNativo(`spellvault-${new Date().toISOString().slice(0, 10)}.json`, SV.d.exportar())) return; const blob = new Blob([SV.d.exportar()], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `spellvault-${new Date().toISOString().slice(0, 10)}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast("Cópia de segurança baixada", "download"); }
         else if (g === "apagar") { if (await confirmar("Apagar tudo?", "Coleção, álbuns, decks e partida deste aparelho serão apagados. Exporte uma cópia antes se quiser guardar.", "Apagar tudo")) { SV.d.apagarTudo(); toast("Cofre esvaziado", "delete"); location.hash = "#vida"; location.reload(); } }
         else if (g === "precos") {
           const l = SV.d.cartas(); if (!l.length) return;

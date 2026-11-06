@@ -212,7 +212,7 @@
       if (acao === "voltar") (SV.navegou > 0 ? history.back() : (location.hash = c ? "#colecao" : "#consulta")); // só volta no histórico se ele é do próprio app
       else if (acao === "virar") { const x = $("#c3d", el); S.virada = !S.virada; x.dataset.virada = S.virada ? "1" : "0"; x.style.transform = `rotateY(${S.virada ? 180 : 0}deg)`; }
       else if (acao === "lang") { S.lang = b.dataset.l; aplicarIdioma(el, S); }
-      else if (acao === "compartilhar") SV.copiar(`${base.nome} — ${base.setNome} (${base.set.toUpperCase()} #${base.num})`);
+      else if (acao === "compartilhar") SV.compartilhar(base.nome, `${base.nome} — ${base.setNome} (${base.set.toUpperCase()} #${base.num})\n${base.uri || ""}`.trim());
       else if (acao === "gaveta") {
         const id = b.dataset.g; S.abertas[id] = !S.abertas[id]; atualizarGaveta(el, S, id);
         if (S.abertas[id] && ((id === "edicoes" && !S.edicoes) || (id === "rulings" && !S.rulings))) carregarGaveta(el, S, id, minha);
